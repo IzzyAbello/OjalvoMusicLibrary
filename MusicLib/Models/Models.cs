@@ -29,7 +29,7 @@ public class Performer
     /// <summary>
     /// Comodín para establecer intérprete desconocido.
     /// </summary>
-    public const string UnknownName = "Unknown Performer";
+    public const string UnknownName = "Intérprete desconocido";
 
     /// <summary>
     /// Identificador.

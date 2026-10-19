@@ -40,9 +40,9 @@ public interface IPerformerDao
 public interface IRolaDao
 {
     /// <summary>
-    /// Todos los paths ya minados (para saltar archivos existentes).
+    /// Consulta a la BD si ya existe una rola con esa ruta.
     /// </summary>
-    HashSet<string> GetAllPaths();
+    bool ExistsByPath(string path);
 
     /// <summary>
     /// Inserta y devuelve el id generado.

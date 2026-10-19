@@ -5,7 +5,7 @@ namespace MusicLib.Data;
 /// <summary>
 /// Dueño de la conexión y de la transacción actual. Los DAOs reciben el
 /// UnitOfWork (no la transacción), así pueden seguir funcionando cuando el
-/// minero hace commit por lotes y abre una transacción nueva.
+/// minero hace commit y abre una transacción nueva.
 /// </summary>
 public sealed class UnitOfWork : IDisposable
 {
@@ -48,7 +48,9 @@ public sealed class UnitOfWork : IDisposable
     public bool InTransaction => _tx != null;
 
     /// <summary>
-    /// Inicia una transacción
+    /// Inicia una transacción tomando el candado de escritura desde el
+    /// principio (BEGIN IMMEDIATE): si otro proceso está escribiendo, falla
+    /// aquí, una sola vez, y no a la mitad del trabajo.
     /// </summary>
     /// <exception cref="InvalidOperationException">
     /// Si se trata de iniciar una transacción mientras ya hay una en curso. 
@@ -60,7 +62,7 @@ public sealed class UnitOfWork : IDisposable
             (
                 "Ya hay una transacción abierta."
             );
-        _tx = _conn.BeginTransaction();
+        _tx = _conn.BeginTransaction(deferred: false);
     }
 
     /// <summary>

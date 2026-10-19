@@ -8,17 +8,15 @@ internal sealed class RolaDao : IRolaDao
 
     public RolaDao(UnitOfWork uow) => _uow = uow;
 
-    public HashSet<string> GetAllPaths()
+    public bool ExistsByPath(string path)
     {
-        var paths = new HashSet<string>(StringComparer.Ordinal);
+        using var cmd = _uow.CreateCommand
+        (
+            "SELECT 1 FROM rolas WHERE path = $path LIMIT 1"
+        );
+        cmd.Parameters.AddWithValue("$path", path);
 
-        using var cmd = _uow.CreateCommand("SELECT path FROM rolas");
-        using var r = cmd.ExecuteReader();
-        
-        while (r.Read())
-            if (!r.IsDBNull(0)) paths.Add(r.GetString(0));
-        
-        return paths;
+        return cmd.ExecuteScalar() is not null;
     }
 
     public long Insert(Rola rola)
@@ -29,7 +27,7 @@ internal sealed class RolaDao : IRolaDao
             "VALUES ($perf, $album, $path, $title, $track, $year, $genre) " +
             "RETURNING id_rola"
         );
-        
+
         cmd.Parameters.AddWithValue("$perf", rola.IdPerformer);
         cmd.Parameters.AddWithValue("$album", rola.IdAlbum);
         cmd.Parameters.AddWithValue("$path", rola.Path);

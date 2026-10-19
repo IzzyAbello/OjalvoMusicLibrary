@@ -12,4 +12,8 @@
     <PackageReference Include="TagLibSharp" Version="2.3.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Data\rolas.sql" LogicalName="rolas.sql" />
+  </ItemGroup>
+
 </Project>
