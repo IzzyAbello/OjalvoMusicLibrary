@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using MusicLib.Logging;
 
 namespace MusicLib.Data;
 
@@ -10,6 +11,7 @@ namespace MusicLib.Data;
 public sealed class UnitOfWork : IDisposable
 {
     private readonly SqliteConnection _conn;
+    private readonly ILog _log;
     private SqliteTransaction? _tx;
 
     /// <summary>
@@ -32,14 +34,23 @@ public sealed class UnitOfWork : IDisposable
     /// Luego crea los tres DAOs
     /// </summary>
     /// <param name="dbPath"> Ruta de la DB </param>
-    public UnitOfWork(string dbPath)
+    /// <param name="log">
+    /// Destino de los mensajes. Si es null, los mensajes se descartan. Se
+    /// comparte con los DAOs.
+    /// </param>
+    public UnitOfWork(string dbPath, ILog? log = null)
     {
+        _log = log ?? NullLog.Instance;
+
+        _log.Write($"Estableciendo conexión con la DB en {dbPath}");
         _conn = new SqliteConnection($"Data Source={dbPath};Foreign Keys=True");
         _conn.Open();
 
-        Albums = new AlbumDao(this);
-        Performers = new PerformerDao(this);
-        Rolas = new RolaDao(this);
+        Albums = new AlbumDao(this, _log);
+        Performers = new PerformerDao(this, _log);
+        Rolas = new RolaDao(this, _log);
+
+        _log.Write($"Unit of Work creada correctamente.");
     }
 
     /// <summary>
@@ -57,6 +68,7 @@ public sealed class UnitOfWork : IDisposable
     /// </exception>
     public void Begin()
     {
+        _log.Write($"Comenzando una transacción.");
         if (InTransaction)
             throw new InvalidOperationException
             (
@@ -73,6 +85,7 @@ public sealed class UnitOfWork : IDisposable
     /// </exception>
     public void Commit()
     {
+        _log.Write($"Confirmando una transacción.");
         var tx = _tx ?? throw new InvalidOperationException
             (
                 "No hay transacción abierta."
@@ -89,6 +102,7 @@ public sealed class UnitOfWork : IDisposable
     /// </exception>
     public void Rollback()
     {
+        _log.Write($"Deshaciendo cambios.");
         var tx = _tx ?? throw new InvalidOperationException
             (
                 "No hay transacción abierta."
@@ -105,6 +119,7 @@ public sealed class UnitOfWork : IDisposable
     /// </param>
     public void Savepoint(string name)
     {
+        _log.Write($"SAVEPOINT.");
         CheckName(name);
         Exec($"SAVEPOINT {name}");
     }
@@ -117,6 +132,7 @@ public sealed class UnitOfWork : IDisposable
     /// </param>
     public void ReleaseSavepoint(string name)
     {
+        _log.Write($"REALEASE.");
         CheckName(name);
         Exec($"RELEASE {name}");
     }
@@ -129,6 +145,7 @@ public sealed class UnitOfWork : IDisposable
     /// </param>
     public void RollbackToSavepoint(string name)
     {
+        _log.Write($"ROLLBACK");
         CheckName(name);
         Exec($"ROLLBACK TO {name}");
         Exec($"RELEASE {name}");
@@ -145,6 +162,7 @@ public sealed class UnitOfWork : IDisposable
     /// </returns>
     internal SqliteCommand CreateCommand(string sql)
     {
+        _log.Write($"Creando comando.");
         var cmd = _conn.CreateCommand();
         cmd.CommandText = sql;
         cmd.Transaction = _tx;
@@ -153,6 +171,7 @@ public sealed class UnitOfWork : IDisposable
 
     private void Exec(string sql)
     {
+        _log.Write($"Ejecutando consulta a la DB");
         using var cmd = CreateCommand(sql);
         cmd.ExecuteNonQuery();
     }
@@ -172,6 +191,7 @@ public sealed class UnitOfWork : IDisposable
     /// </summary>
     public void Dispose()
     {
+        _log.Write($"Limpiando transacción.");
         if (_tx != null)
         {
             try { _tx.Rollback(); } catch { /* ya cerrada */ }

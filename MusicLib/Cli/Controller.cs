@@ -212,7 +212,7 @@ public sealed class Controller
         DatabaseInitializer.EnsureCreated(_dbPath, _log);
         var miner = _minerFactory(_dbPath, _log);
 
-        _log.Write($"Minando '{root}'...");
+        _log.Write($"Minando en '{root}'...");
 
         using var cts = new CancellationTokenSource();
         ConsoleCancelEventHandler onCancel = (_, e) =>

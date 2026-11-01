@@ -1,3 +1,4 @@
+using MusicLib.Logging;
 using MusicLib.Models;
 
 namespace MusicLib.Data;
@@ -5,11 +6,18 @@ namespace MusicLib.Data;
 internal sealed class AlbumDao : IAlbumDao
 {
     private readonly UnitOfWork _uow;
+    private readonly ILog _log;
 
-    public AlbumDao(UnitOfWork uow) => _uow = uow;
+    public AlbumDao(UnitOfWork uow, ILog log)
+    {
+        _uow = uow;
+        _log = log;
+        _log.Write("AlbumDao creado.");
+    }
 
     public Album? FindByNameAndPath(string name, string path)
     {
+        _log.Write($"Buscando Album por nombre: {name} y ruta: {path}");
         using var cmd = _uow.CreateCommand
         (
             "SELECT id_album, path, name, year FROM albums " +
@@ -33,6 +41,7 @@ internal sealed class AlbumDao : IAlbumDao
 
     public long Insert(Album album)
     {
+        _log.Write($"Insertando Album: {album.Name}");
         using var cmd = _uow.CreateCommand
         (
             "INSERT INTO albums (path, name, year) VALUES ($path, $name, $year) " +

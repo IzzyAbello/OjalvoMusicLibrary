@@ -1,4 +1,5 @@
 using MusicLib.Data;
+using MusicLib.Logging;
 using MusicLib.Models;
 
 namespace MusicLib.Mining;
@@ -24,6 +25,7 @@ public sealed class Miner
     private readonly string _dbPath;
     private readonly IFileScanner _scanner;
     private readonly ITagReader _tagReader;
+    private readonly ILog _log;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     /// <summary>
@@ -38,11 +40,22 @@ public sealed class Miner
     /// <param name="tagReader">
     /// Lector de etiquetas.
     /// </param>
-    public Miner(string dbPath, IFileScanner scanner, ITagReader tagReader)
+    /// <param name="log">
+    /// Destino de los mensajes. Si es null, los mensajes se descartan.
+    /// </param>
+    public Miner
+    (
+        string dbPath,
+        IFileScanner scanner,
+        ITagReader tagReader,
+        ILog? log = null
+    )
     {
         _dbPath = dbPath;
         _scanner = scanner;
         _tagReader = tagReader;
+        _log = log ?? NullLog.Instance;
+        _log.Write($"Miner creado.");
     }
 
     /// <summary>
@@ -111,10 +124,13 @@ public sealed class Miner
         var errors = new List<string>();
         int failed = 0, skipped = 0;
 
-        using var uow = new UnitOfWork(_dbPath);
+        using var uow = new UnitOfWork(_dbPath, _log);
 
         // ---- Fase 1: encontrar, descartar los ya existentes y leer el resto ----
         var files = _scanner.EnumerateMp3(root).ToList();
+        
+        _log.Write($"Encontrados {files.Count} archivos MP3.");
+        
         var mined = new List<(string Path, TagInfo Tag)>();
         int visited = 0;
 
@@ -131,15 +147,21 @@ public sealed class Miner
                         errors
                     );
 
-            if (uow.Rolas.ExistsByPath(file)) skipped++;
+            if (uow.Rolas.ExistsByPath(file))
+            {
+                _log.Write($"Saltando archivo {file}");
+                skipped++;
+            }
             else
             {
                 try
                 {
+                    _log.Write($"Procesando TagInfo de {file}");
                     mined.Add((file, _tagReader.Read(file)));
                 }
                 catch (Exception ex)
                 {
+                    _log.Write($"Fallo al procesar TagInfo {file}");
                     failed++;
                     errors.Add($"{file}: {ex.Message}");
                 }
@@ -167,9 +189,14 @@ public sealed class Miner
                 break;
             }
 
-            if (uow.Rolas.ExistsByPath(file)) skipped++;
+            if (uow.Rolas.ExistsByPath(file))
+            {
+                _log.Write($"Ya existe en la DB el archivo con ruta: {file}");
+                skipped++;
+            }
             else
             {
+                _log.Write($"Guardando en la DB {file}");
                 Save(uow, file, tag);
                 inserted++;
             }
@@ -182,6 +209,7 @@ public sealed class Miner
             );
         }
 
+        _log.Write($"Confirmando cambios.");
         uow.Commit();   // Al cancelar lo ya insertado se conserva
         return new MiningResult
         (

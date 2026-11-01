@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.Data.Sqlite;
+using MusicLib.Logging;
 
 namespace MusicLib.Data;
 
@@ -35,15 +36,21 @@ public static class DatabaseInitializer
     /// <param name="dbPath">
     /// Ruta del archivo de la BD. Si no existe, se crea.
     /// </param>
+    /// <param name="log">
+    /// Destino de los mensajes. Si es null, los mensajes se descartan.
+    /// </param>
     /// <exception cref="InvalidOperationException">
     /// Si la BD ya tiene tablas pero le faltan las del esquema esperado, o si
     /// el recurso embebido no se encuentra. No se modifica nada en ese caso.
     /// </exception>
-    public static void EnsureCreated(string dbPath)
+    public static void EnsureCreated(string dbPath, ILog? log = null)
     {
+        log ??= NullLog.Instance;
+
         var dir = Path.GetDirectoryName(Path.GetFullPath(dbPath));
         if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
 
+        log.Write("Abriendo conexión con la DB.");
         using var conn = new SqliteConnection($"Data Source={dbPath};Foreign Keys=True");
         conn.Open();
 
@@ -51,7 +58,11 @@ public static class DatabaseInitializer
 
         var existing = ListTables(conn, tx);
 
-        if (existing.Count == 0) Execute(conn, tx, ReadScript());
+        if (existing.Count == 0)
+        {
+            log.Write("Creando la DB.");
+            Execute(conn, tx, ReadScript());
+        }
         else
         {
             var missing = ExpectedTables.Where(t => !existing.Contains(t)).ToList();
@@ -63,6 +74,7 @@ public static class DatabaseInitializer
                 );
         }
 
+        log.Write("Generando índices...");
         foreach (var sql in IndexStatements) Execute(conn, tx, sql);
 
         tx.Commit();

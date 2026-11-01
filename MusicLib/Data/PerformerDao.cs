@@ -1,3 +1,4 @@
+using MusicLib.Logging;
 using MusicLib.Models;
 
 namespace MusicLib.Data;
@@ -5,11 +6,18 @@ namespace MusicLib.Data;
 internal sealed class PerformerDao : IPerformerDao
 {
     private readonly UnitOfWork _uow;
+    private readonly ILog _log;
 
-    public PerformerDao(UnitOfWork uow) => _uow = uow;
+    public PerformerDao(UnitOfWork uow, ILog log)
+    {
+        _uow = uow;
+        _log = log;
+        _log.Write("PerformerDao creado.");
+    }
 
     public Performer? FindByName(string name)
     {
+        _log.Write($"Buscando Performer por nombre: {name}");
         using var cmd = _uow.CreateCommand
         (
             "SELECT id_performer, id_type, name FROM performers " +
@@ -32,6 +40,7 @@ internal sealed class PerformerDao : IPerformerDao
 
     public long Insert(Performer performer)
     {
+        _log.Write($"Insertando Performer: {performer.Name}");
         using var cmd = _uow.CreateCommand(
             "INSERT INTO performers (id_type, name) VALUES ($type, $name) " +
             "RETURNING id_performer");

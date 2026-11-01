@@ -1,3 +1,5 @@
+using MusicLib.Logging;
+
 namespace MusicLib.Mining;
 
 /// <summary>
@@ -6,6 +8,16 @@ namespace MusicLib.Mining;
 /// </summary>
 public sealed class TagReader : ITagReader
 {
+    private readonly ILog _log;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="log">
+    /// Destino de los mensajes. Si es null, los mensajes se descartan.
+    /// </param>
+    public TagReader(ILog? log = null) => _log = log ?? NullLog.Instance;
+
     /// <summary>
     /// Método de lectura.
     /// </summary>
@@ -17,6 +29,8 @@ public sealed class TagReader : ITagReader
     /// </returns>
     public TagInfo Read(string path)
     {
+        _log.Write($"Interpretando metadatos del archivo {path}");
+
         using var file = TagLib.File.Create(new ReadOnlyFileAbstraction(path));
         var tag = file.Tag;
 
