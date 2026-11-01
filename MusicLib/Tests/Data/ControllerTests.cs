@@ -5,8 +5,8 @@ using MusicLib.Tests.Support;
 namespace MusicLib.Tests.Cli;
 
 /// <summary>
-/// Pruebas del Controller con mocking de consola, minero con escáner/lector falsos
-/// y una vista falsa, sobre carpetas temporales.
+/// Pruebas del Controller con consola en memoria, minero con escáner/lector
+/// falsos y una vista falsa, sobre directorios temporales.
 /// </summary>
 public sealed class ControllerTests : IDisposable
 {
@@ -30,10 +30,10 @@ public sealed class ControllerTests : IDisposable
             _out,
             _err,
             _tmp.Combine("db", "lib.db"),
-            db =>
+            (db, log) =>
             {
                 _minersCreated++;
-                return new Miner(db, _scanner, _reader);
+                return new Miner(db, _scanner, _reader, log);
             },
             () => _viewCalls++
         );
@@ -62,6 +62,18 @@ public sealed class ControllerTests : IDisposable
         Assert.Contains("Uso:", _out.ToString());
         Assert.Equal(0, _minersCreated);
         Assert.Equal(0, _viewCalls);
+    }
+
+    /// <summary>
+    /// La ayuda se muestra y no trae líneas de log, aunque venga -l.
+    /// </summary>
+    [Fact]
+    public void Help_WithLogFlag_PrintsHelpWithoutLogLines()
+    {
+        Make("-l", "--help").Execute();
+
+        Assert.Contains("Uso:", _out.ToString());
+        Assert.DoesNotContain("[Log]", _out.ToString());
     }
 
     /// <summary>
@@ -95,10 +107,10 @@ public sealed class ControllerTests : IDisposable
     }
 
     /// <summary>
-    /// -m mina y NO abre la vista.
+    /// -m mina y NO abre la vista. Sin -l no se muestra nada.
     /// </summary>
     [Fact]
-    public void Mine_ExistingPath_Mines_AndSkipsView()
+    public void Mine_ExistingPath_Mines_AndSkipsView_Silently()
     {
         AddMp3("a.mp3");
 
@@ -106,8 +118,40 @@ public sealed class ControllerTests : IDisposable
 
         Assert.Equal(Controller.ExitOk, code);
         Assert.Equal(1, _minersCreated);
-        Assert.Contains("Insertadas:  1", _out.ToString());
+        Assert.Equal("", _out.ToString());
+        Assert.Equal("", _err.ToString());
         Assert.Equal(0, _viewCalls);
+    }
+
+    /// <summary>
+    /// Con -l (en cualquiera de sus formas) se muestra el log de la minería.
+    /// </summary>
+    [Theory]
+    [InlineData("-l")]
+    [InlineData("--log")]
+    public void WithLogFlag_ShowsTheLog(string flag)
+    {
+        AddMp3("a.mp3");
+
+        var code = Make(flag, "-m", _tmp.Root).Execute();
+
+        Assert.Equal(Controller.ExitOk, code);
+        Assert.Contains("[Log] Parámetros", _out.ToString());
+        Assert.Contains("[Log] Minando", _out.ToString());
+        Assert.Contains("Insertadas:  1", _out.ToString());
+    }
+
+    /// <summary>
+    /// Sin -l no aparece ninguna línea de log, aunque se mine.
+    /// </summary>
+    [Fact]
+    public void WithoutLogFlag_NoLogLinesAppear()
+    {
+        AddMp3("a.mp3");
+
+        Make(_tmp.Root).Execute();
+
+        Assert.DoesNotContain("[Log]", _out.ToString());
     }
 
     /// <summary>
@@ -159,37 +203,42 @@ public sealed class ControllerTests : IDisposable
     }
 
     /// <summary>
-    /// Un fallo inesperado del minero se reporta limpio y no abre la vista.
+    /// Un fallo inesperado del minero se reporta limpio (siempre) y no abre la
+    /// vista.
     /// </summary>
-    [Fact]
-    public void MinerFailure_IsReported_AndViewIsSkipped()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MinerFailure_IsReported_AndViewIsSkipped(bool withLog)
     {
         _scanner.Failure = new IOException("disco roto");
+        var args = withLog ? new[] { "-l", _tmp.Root } : new[] { _tmp.Root };
 
-        var code = Make(_tmp.Root).Execute();
+        var code = Make(args).Execute();
 
         Assert.Equal(Controller.ExitError, code);
         Assert.Contains("disco roto", _err.ToString());
+        Assert.Equal(withLog, _out.ToString().Contains("IOException"));
         Assert.Equal(0, _viewCalls);
     }
 
     /// <summary>
-    /// Un archivo con etiquetas ilegibles no tumba la corrida: se lista como
-    /// error y el resto se inserta.
+    /// Un archivo con etiquetas ilegibles no tumba la corrida: queda en el
+    /// log como fallido y el resto se inserta.
     /// </summary>
     [Fact]
-    public void UnreadableFile_IsListed_AndRunContinues()
+    public void UnreadableFile_IsLogged_AndRunContinues()
     {
         AddMp3("buena.mp3");
         var bad = AddMp3("mala.mp3");
         _reader.Fail(bad, new InvalidDataException("etiqueta corrupta"));
 
-        var code = Make("-m", _tmp.Root).Execute();
+        var code = Make("-l", "-m", _tmp.Root).Execute();
 
         Assert.Equal(Controller.ExitOk, code);
         Assert.Contains("Insertadas:  1", _out.ToString());
         Assert.Contains("Fallidas:    1", _out.ToString());
-        Assert.Contains("etiqueta corrupta", _err.ToString());
+        Assert.Contains("etiqueta corrupta", _out.ToString());
     }
 
     /// <summary>

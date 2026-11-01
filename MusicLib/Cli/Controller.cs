@@ -1,4 +1,5 @@
 using MusicLib.Data;
+using MusicLib.Logging;
 using MusicLib.Mining;
 
 namespace MusicLib.Cli;
@@ -45,7 +46,7 @@ public sealed class Controller
                                         Mina el directorio indicado. La ruta
                                         es obligatoria; puede ser relativa al
                                         directorio actual o absoluta.
-          -l, --log                     Activa el log del programa.
+          -l, --log                     Muestra en consola el log del programa.
           -h, --help                    Muestra esta ayuda y sale.
         """;
 
@@ -53,11 +54,16 @@ public sealed class Controller
     private readonly TextWriter _out;
     private readonly TextWriter _err;
     private readonly string _dbPath;
-    private readonly Func<string, Miner> _minerFactory;
+    private readonly Func<string, ILog, Miner> _minerFactory;
     private readonly Action _runView;
+    private const int _progressFileCount = 3;
+
+    // Descarta todo hasta que se depuran los parámetros; si trae -l, pasa a
+    // ser un ConsoleLog.
+    private ILog _log = NullLog.Instance;
 
     /// <summary>
-    /// Constructor de producción: consola real, BD en la carpeta de datos del
+    /// Constructor de producción: consola real, DB en la carpeta de datos del
     /// usuario, minero real.
     /// </summary>
     /// <param name="args">
@@ -70,11 +76,15 @@ public sealed class Controller
     /// Constructor con dependencias inyectables (para pruebas).
     /// </summary>
     /// <param name="args">Argumentos.</param>
-    /// <param name="output">Salida normal.</param>
-    /// <param name="error">Salida de errores.</param>
+    /// <param name="output">
+    /// Salida normal (ayuda y, con -l, el log).
+    /// </param>
+    /// <param name="error">
+    /// Salida de errores.
+    /// </param>
     /// <param name="dbPath">Ruta del archivo de la BD.</param>
     /// <param name="minerFactory">
-    /// Crea el minero dada la ruta de la BD. Null = minero real.
+    /// Crea el minero dadas la ruta de la DB y el log. Null = minero real.
     /// </param>
     /// <param name="runView">
     /// Abre la vista. Null = todavía no implementada (lanza
@@ -86,7 +96,7 @@ public sealed class Controller
         TextWriter output,
         TextWriter error,
         string dbPath,
-        Func<string, Miner>? minerFactory = null,
+        Func<string, ILog, Miner>? minerFactory = null,
         Action? runView = null
     )
     {
@@ -95,7 +105,7 @@ public sealed class Controller
         _err = error;
         _dbPath = dbPath;
         _minerFactory = minerFactory
-            ?? (db => new Miner(db, new FileScanner(), new TagReader()));
+            ?? ((db, l) => new Miner(db, new FileScanner(l), new TagReader(l), l));
         _runView = runView
             ?? 
             (
@@ -124,7 +134,9 @@ public sealed class Controller
                 return ExitOk;
             }
 
-            // TODO(log): options.Log todavía no se implementa.
+            if (options.Log) _log = new ConsoleLog(_out);
+
+            _log.Write($"Parámetros: {options}");
 
             if (options.MinePath is not null)
             {
@@ -144,6 +156,7 @@ public sealed class Controller
         catch (Exception ex)
         {
             _err.WriteLine($"Error: {ex.Message}");
+            _log.Write(ex.ToString());
             return ExitError;
         }
     }
@@ -196,12 +209,10 @@ public sealed class Controller
     {
         var root = ResolveDirectory(rawPath);
 
-        DatabaseInitializer.EnsureCreated(_dbPath);
-        var miner = _minerFactory(_dbPath);
+        DatabaseInitializer.EnsureCreated(_dbPath, _log);
+        var miner = _minerFactory(_dbPath, _log);
 
-
-        // LOG
-        _out.WriteLine($"Minando '{root}'...");
+        _log.Write($"Minando '{root}'...");
 
         using var cts = new CancellationTokenSource();
         ConsoleCancelEventHandler onCancel = (_, e) =>
@@ -229,23 +240,21 @@ public sealed class Controller
 
     private void ReportProgress(MiningProgress p)
     {
-        if (p.Processed != p.Total && p.Processed % 100 != 0) return;
+        if (p.Processed != p.Total && p.Processed % _progressFileCount != 0) return;
 
         var phase = p.Phase == MiningPhase.Reading ? "Leyendo" : "Guardando";
-        // LOG
-        _out.WriteLine($"  [{phase}] {p.Processed}/{p.Total}");
+        _log.Write($"  [{phase}] {p.Processed}/{p.Total}");
     }
 
     private void PrintSummary(MiningResult r)
     {
-        // LOG
-        _out.WriteLine(r.Cancelled ? "Minado cancelado." : "Minado terminado.");
-        _out.WriteLine($"  Encontradas: {r.Found}");
-        _out.WriteLine($"  Insertadas:  {r.Inserted}");
-        _out.WriteLine($"  Omitidas:    {r.Skipped}");
-        _out.WriteLine($"  Fallidas:    {r.Failed}");
+        _log.Write(r.Cancelled ? "Minado cancelado." : "Minado terminado.");
+        _log.Write($"  Encontradas: {r.Found}");
+        _log.Write($"  Insertadas:  {r.Inserted}");
+        _log.Write($"  Omitidas:    {r.Skipped}");
+        _log.Write($"  Fallidas:    {r.Failed}");
 
-        foreach (var e in r.Errors) _err.WriteLine($"  ! {e}");
+        foreach (var e in r.Errors) _log.Write($"  ! {e}");
     }
 
     /// <summary>
