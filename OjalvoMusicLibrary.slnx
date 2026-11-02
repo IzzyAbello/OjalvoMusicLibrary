@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="MusicLib/MusicLib.csproj" />
+  <Project Path="MusicLib.UI/MusicLib.UI.csproj" />
+  <Project Path="MusicLib.Tests/MusicLib.Tests.csproj" />
+</Solution>

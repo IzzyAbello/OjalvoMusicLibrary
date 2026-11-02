@@ -69,8 +69,19 @@ public sealed class Controller
     /// <param name="args">
     /// Argumentos tal como llegan a Main.
     /// </param>
-    public Controller(string[] args)
-        : this(args, Console.Out, Console.Error, DefaultDbPath()) { }
+    /// <param name="runView">
+    /// Abre la vista (la inyecta el proyecto de la interfaz). Null = todavía
+    /// no implementada (lanza NotImplementedException).
+    /// </param>
+    public Controller(string[] args, Action? runView = null)
+        : this
+        (
+            args,
+            Console.Out,
+            Console.Error,
+            DefaultDbPath(),
+            runView: runView
+        ) { }
 
     /// <summary>
     /// Constructor con dependencias inyectables (para pruebas).

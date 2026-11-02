@@ -1,35 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <AssemblyName>ojalvomusic</AssemblyName>
-    <RootNamespace>MusicLib</RootNamespace>
-    <GenerateProgramFile>false</GenerateProgramFile>
     <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>MusicLib</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.*" />
     <PackageReference Include="TagLibSharp" Version="2.3.*" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
-    <PackageReference Include="xunit" Version="2.9.*" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.*" />
   </ItemGroup>
 
+  <!-- Los tests ven los tipos internal (DAOs, constructor interno del Controller...). -->
   <ItemGroup>
-    <Using Include="Xunit" />
+    <InternalsVisibleTo Include="MusicLib.Tests" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Data\rolas.sql" LogicalName="rolas.sql" />
-    <None Include="..\Dataset\**\*.mp3"
-          Link="Dataset\%(RecursiveDir)%(Filename)%(Extension)"
-          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

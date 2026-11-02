@@ -1,0 +1,9 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# IDEs
+.vs/
+.idea/
