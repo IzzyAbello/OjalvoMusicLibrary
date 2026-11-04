@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MusicLib.UI.Views.RolaEditorWindow"
+        Title="Editar metadatos"
+        Width="480" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+  <StackPanel Margin="20" Spacing="12">
+    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+          RowSpacing="8" ColumnSpacing="8">
+      <TextBlock Grid.Row="0" Text="Título" VerticalAlignment="Center" />
+      <TextBox Grid.Row="0" Grid.Column="1" />
+      <TextBlock Grid.Row="1" Text="Intérprete" VerticalAlignment="Center" />
+      <TextBox Grid.Row="1" Grid.Column="1" />
+      <TextBlock Grid.Row="2" Text="Álbum" VerticalAlignment="Center" />
+      <TextBox Grid.Row="2" Grid.Column="1" />
+      <TextBlock Grid.Row="3" Text="Pista" VerticalAlignment="Center" />
+      <TextBox Grid.Row="3" Grid.Column="1" />
+      <TextBlock Grid.Row="4" Text="Año" VerticalAlignment="Center" />
+      <TextBox Grid.Row="4" Grid.Column="1" />
+      <TextBlock Grid.Row="5" Text="Género" VerticalAlignment="Center" />
+      <TextBox Grid.Row="5" Grid.Column="1" />
+    </Grid>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Cancelar" Click="OnClose" />
+      <Button Content="Guardar" Classes="accent" Click="OnClose" />
+    </StackPanel>
+  </StackPanel>
+
+</Window>
