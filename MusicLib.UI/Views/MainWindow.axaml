@@ -1,0 +1,147 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MusicLib.UI.Views.MainWindow"
+        Title="OjalvoMusic"
+        Width="1200" Height="720" MinWidth="900" MinHeight="520"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel>
+
+    <!-- ============ BARRA SUPERIOR (ocupa todo el ancho) ============ -->
+    <Border DockPanel.Dock="Top" Padding="10,8"
+            BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+
+        <!-- Acciones -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+          <Button Content="Minar" ToolTip.Tip="Elegir una carpeta y minarla" />
+          <Button Content="Agregar artista" Click="OnAddPerson"
+                  ToolTip.Tip="Dar de alta una persona" />
+          <Button Content="Crear grupo" Click="OnAddGroup"
+                  ToolTip.Tip="Crear un grupo musical" />
+        </StackPanel>
+
+        <!-- Búsqueda -->
+        <Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8"
+              MaxWidth="560">
+          <TextBox PlaceholderText="Buscar por título, intérprete, álbum o género..." />
+          <Button Grid.Column="1" Content="Buscar" />
+        </Grid>
+
+        <!-- Búsqueda avanzada y recarga -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+          <Button Content="Búsqueda avanzada" Click="OnAdvancedSearch" />
+          <Button Content="Recargar"
+                  ToolTip.Tip="Volver a leer la biblioteca de la BD" />
+        </StackPanel>
+
+      </Grid>
+    </Border>
+
+    <!-- ============ BARRA DE ESTADO ============ -->
+    <Border DockPanel.Dock="Bottom" Padding="10,4" MinHeight="28"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <TextBlock VerticalAlignment="Center" />
+    </Border>
+
+    <!-- ============ CUERPO: 2/3 izquierda, 1/3 derecha ============ -->
+    <Grid ColumnDefinitions="2*,*">
+
+      <!-- Izquierda: resultados + reproductor -->
+      <Grid Grid.Column="0" RowDefinitions="*,Auto">
+
+        <DataGrid Grid.Row="0"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  CanUserSortColumns="True"
+                  CanUserResizeColumns="True"
+                  GridLinesVisibility="Horizontal">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="#" Width="50" />
+            <DataGridTextColumn Header="Título" Width="2*" />
+            <DataGridTextColumn Header="Intérprete" Width="*" />
+            <DataGridTextColumn Header="Álbum" Width="*" />
+            <DataGridTextColumn Header="Año" Width="70" />
+            <DataGridTextColumn Header="Género" Width="100" />
+            <DataGridTemplateColumn Header="" Width="90">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <Button Content="Editar" Margin="4,2"
+                          HorizontalAlignment="Center"
+                          ToolTip.Tip="Editar los metadatos de esta canción" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Reproductor (deshabilitado hasta que exista) -->
+        <Border Grid.Row="1" Padding="12,8" IsEnabled="False"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Button Content="Anterior" />
+              <Button Content="Reproducir" />
+              <Button Content="Siguiente" />
+            </StackPanel>
+            <Slider Grid.Column="1" Minimum="0" Maximum="100" Value="0"
+                    VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="0:00 / 0:00"
+                       VerticalAlignment="Center" />
+          </Grid>
+        </Border>
+
+      </Grid>
+
+      <!-- Derecha: metadatos de la canción seleccionada -->
+      <Border Grid.Column="1" Padding="16"
+              BorderThickness="1,0,0,0"
+              BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+        <ScrollViewer>
+          <StackPanel Spacing="14">
+
+            <Border Width="160" Height="160" CornerRadius="8"
+                    HorizontalAlignment="Left"
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
+              <TextBlock Text="♪" FontSize="64" Opacity="0.5"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center" />
+            </Border>
+
+            <Grid ColumnDefinitions="110,*"
+                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                  RowSpacing="8" ColumnSpacing="8">
+              <TextBlock Grid.Row="0" Text="Título" Opacity="0.6" />
+              <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="1" Text="Intérprete" Opacity="0.6" />
+              <TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="2" Text="Álbum" Opacity="0.6" />
+              <TextBlock Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="3" Text="Pista" Opacity="0.6" />
+              <TextBlock Grid.Row="3" Grid.Column="1" />
+              <TextBlock Grid.Row="4" Text="Año" Opacity="0.6" />
+              <TextBlock Grid.Row="4" Grid.Column="1" />
+              <TextBlock Grid.Row="5" Text="Género" Opacity="0.6" />
+              <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="6" Text="Archivo" Opacity="0.6" />
+              <TextBlock Grid.Row="6" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="7" Text="Carpeta del álbum" Opacity="0.6"
+                         TextWrapping="Wrap" />
+              <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap" />
+            </Grid>
+
+            <Button Content="Editar metadatos" Click="OnEditRola" />
+
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+    </Grid>
+
+  </DockPanel>
+
+</Window>
