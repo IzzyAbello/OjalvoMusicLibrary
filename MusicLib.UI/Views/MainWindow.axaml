@@ -1,6 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MusicLib.UI.ViewModels"
+        xmlns:m="using:MusicLib.Models"
         x:Class="MusicLib.UI.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
         Title="OjalvoMusic"
         Width="1200" Height="720" MinWidth="900" MinHeight="520"
         WindowStartupLocation="CenterScreen">
@@ -15,7 +18,9 @@
 
         <!-- Acciones -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-          <Button Content="Minar" ToolTip.Tip="Elegir una carpeta y minarla" />
+          <Button Content="{Binding MineButtonText}"
+                  Command="{Binding MineCommand}"
+                  ToolTip.Tip="Elegir una carpeta y minarla" />
           <Button Content="Agregar artista" Click="OnAddPerson"
                   ToolTip.Tip="Dar de alta una persona" />
           <Button Content="Crear grupo" Click="OnAddGroup"
@@ -43,7 +48,7 @@
     <Border DockPanel.Dock="Bottom" Padding="10,4" MinHeight="28"
             BorderThickness="0,1,0,0"
             BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-      <TextBlock VerticalAlignment="Center" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Status}" />
     </Border>
 
     <!-- ============ CUERPO: 2/3 izquierda, 1/3 derecha ============ -->
@@ -53,6 +58,7 @@
       <Grid Grid.Column="0" RowDefinitions="*,Auto">
 
         <DataGrid Grid.Row="0"
+                  ItemsSource="{Binding Rolas}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
@@ -60,12 +66,16 @@
                   CanUserResizeColumns="True"
                   GridLinesVisibility="Horizontal">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="#" Width="50" />
-            <DataGridTextColumn Header="Título" Width="2*" />
+            <DataGridTextColumn Header="#" Width="50"
+                                x:DataType="m:Rola" Binding="{Binding Track}" />
+            <DataGridTextColumn Header="Título" Width="2*"
+                                x:DataType="m:Rola" Binding="{Binding Title}" />
             <DataGridTextColumn Header="Intérprete" Width="*" />
             <DataGridTextColumn Header="Álbum" Width="*" />
-            <DataGridTextColumn Header="Año" Width="70" />
-            <DataGridTextColumn Header="Género" Width="100" />
+            <DataGridTextColumn Header="Año" Width="70"
+                                x:DataType="m:Rola" Binding="{Binding Year}" />
+            <DataGridTextColumn Header="Género" Width="100"
+                                x:DataType="m:Rola" Binding="{Binding Genre}" />
             <DataGridTemplateColumn Header="" Width="90">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>

@@ -1,5 +1,6 @@
 using Avalonia;
 using MusicLib.Cli;
+using MusicLib.Logging;
 
 namespace MusicLib.UI;
 
@@ -21,8 +22,12 @@ internal static class Program
     public static int Main(string[] args) =>
         new Controller(args, runView: StartAvalonia).Execute();
 
-    private static void StartAvalonia() =>
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(Array.Empty<string>());
+    private static void StartAvalonia(string dbPath, ILog log) =>
+        AppBuilder.Configure(() => new App(dbPath, log))
+            .UsePlatformDetect()
+            .WithInterFont()
+            .LogToTrace()
+            .StartWithClassicDesktopLifetime(Array.Empty<string>());
 
     /// <summary>
     /// Previsualizador de XAML.

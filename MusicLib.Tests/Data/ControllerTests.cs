@@ -35,7 +35,7 @@ public sealed class ControllerTests : IDisposable
                 _minersCreated++;
                 return new Miner(db, _scanner, _reader, log);
             },
-            () => _viewCalls++
+            (_, _) => _viewCalls++
         );
 
     private string AddMp3(string name)

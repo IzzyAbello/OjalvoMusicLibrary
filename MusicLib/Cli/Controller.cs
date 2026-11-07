@@ -55,7 +55,7 @@ public sealed class Controller
     private readonly TextWriter _err;
     private readonly string _dbPath;
     private readonly Func<string, ILog, Miner> _minerFactory;
-    private readonly Action _runView;
+    private readonly Action<string, ILog> _runView;
     private const int _progressFileCount = 3;
 
     // Descarta todo hasta que se depuran los parámetros; si trae -l, pasa a
@@ -70,10 +70,11 @@ public sealed class Controller
     /// Argumentos tal como llegan a Main.
     /// </param>
     /// <param name="runView">
-    /// Abre la vista (la inyecta el proyecto de la interfaz). Null = todavía
-    /// no implementada (lanza NotImplementedException).
+    /// Abre la vista (la inyecta el proyecto de la interfaz); recibe la ruta
+    /// de la BD (ya creada) y el log. Null = todavía no implementada (lanza
+    /// NotImplementedException).
     /// </param>
-    public Controller(string[] args, Action? runView = null)
+    public Controller(string[] args, Action<string, ILog>? runView = null)
         : this
         (
             args,
@@ -98,8 +99,8 @@ public sealed class Controller
     /// Crea el minero dadas la ruta de la DB y el log. Null = minero real.
     /// </param>
     /// <param name="runView">
-    /// Abre la vista. Null = todavía no implementada (lanza
-    /// NotImplementedException).
+    /// Abre la vista con la ruta de la BD y el log. Null = todavía no
+    /// implementada (lanza NotImplementedException).
     /// </param>
     internal Controller
     (
@@ -108,7 +109,7 @@ public sealed class Controller
         TextWriter error,
         string dbPath,
         Func<string, ILog, Miner>? minerFactory = null,
-        Action? runView = null
+        Action<string, ILog>? runView = null
     )
     {
         _args = args;
@@ -120,7 +121,7 @@ public sealed class Controller
         _runView = runView
             ?? 
             (
-                () => throw new NotImplementedException
+                (_, _) => throw new NotImplementedException
                 (
                     "La vista aún no está implementada :'("
                 )
@@ -155,7 +156,11 @@ public sealed class Controller
                 if (result.Cancelled) return ExitCancelled;
             }
 
-            if (options.OpenView) _runView();
+            if (options.OpenView)
+            {
+                DatabaseInitializer.EnsureCreated(_dbPath, _log);
+                _runView(_dbPath, _log);
+            }
 
             return ExitOk;
         }
