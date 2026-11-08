@@ -96,7 +96,6 @@ public sealed partial class MainViewModel : ObservableObject
         {
             var result = await _miner.MineAsync(root, progress, _cts.Token);
             Status = Summary(result);
-            LoadFirstRolas();
         }
         catch (Exception ex)
         {
@@ -109,6 +108,8 @@ public sealed partial class MainViewModel : ObservableObject
             _cts = null;
             MineButtonText = MineText;
         }
+
+        LoadFirstRolas();
     }
 
     private void ReportProgress(MiningProgress p)
@@ -121,11 +122,19 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void LoadFirstRolas()
     {
-        using var uow = new UnitOfWork(_dbPath, _log);
-        var rolas = uow.Rolas.FindFirst();
+        try
+        {
+            using var uow = new UnitOfWork(_dbPath, _log);
+            var rolas = uow.Rolas.FindFirst();
 
-        Rolas.Clear();
-        foreach (var rola in rolas) Rolas.Add(rola);
+            Rolas.Clear();
+            foreach (var rola in rolas) Rolas.Add(rola);
+        }
+        catch (Exception ex)
+        {
+            Status = $"Error al cargar las rolas: {ex.Message}";
+            _log.Write(ex.ToString());
+        }
     }
 
     private static string Summary(MiningResult r) =>

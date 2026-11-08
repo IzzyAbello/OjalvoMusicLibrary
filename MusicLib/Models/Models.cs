@@ -122,6 +122,19 @@ public class Rola
     /// Género.
     /// </summary>
     public string Genre { get; set; } = "";
+
+    /// <summary>
+    /// Intérprete (propiedad de navegación). Solo lo llenan las consultas
+    /// de lectura; es null en otro caso e Insert lo ignora (usa
+    /// IdPerformer).
+    /// </summary>
+    public Performer? Performer { get; set; }
+
+    /// <summary>
+    /// Álbum (propiedad de navegación). Solo lo llenan las consultas de
+    /// lectura; es null en otro caso e Insert lo ignora (usa IdAlbum).
+    /// </summary>
+    public Album? Album { get; set; }
 }
 
 /// <summary>

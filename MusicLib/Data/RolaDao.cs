@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using MusicLib.Logging;
 using MusicLib.Models;
 
@@ -52,36 +53,61 @@ internal sealed class RolaDao : IRolaDao
     public IReadOnlyList<Rola> FindFirst
     (
         int count = IRolaDao.DefaultFindFirstCount
+    ) => Search(new RolaSearch(), count);
+
+    public IReadOnlyList<Rola> Search
+    (
+        RolaSearch criteria,
+        int count = IRolaDao.DefaultSearchCount
     )
     {
+        ArgumentNullException.ThrowIfNull(criteria);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
 
-        _log.Write($"Buscando las primeras {count} rolas.");
-        using var cmd = _uow.CreateCommand
-        (
-            "SELECT id_rola, id_performer, id_album, path, title, track, " +
-            "year, genre FROM rolas ORDER BY id_rola LIMIT $count"
-        );
-        cmd.Parameters.AddWithValue("$count", count);
+        _log.Write($"Buscando rolas: {criteria} (máximo {count}).");
+        var (sql, parameters) = RolaSearchSql.Build(criteria, count);
+
+        using var cmd = _uow.CreateCommand(sql);
+        foreach (var (name, value) in parameters)
+            cmd.Parameters.AddWithValue(name, value);
 
         using var r = cmd.ExecuteReader();
         var rolas = new List<Rola>();
-        while (r.Read())
-            rolas.Add
-            (
-                new Rola
-                {
-                    Id = r.GetInt64(0),
-                    IdPerformer = r.IsDBNull(1) ? 0 : r.GetInt64(1),
-                    IdAlbum = r.IsDBNull(2) ? Album.UnknownId : r.GetInt64(2),
-                    Path = r.IsDBNull(3) ? "" : r.GetString(3),
-                    Title = r.IsDBNull(4) ? "" : r.GetString(4),
-                    Track = r.IsDBNull(5) ? 0 : r.GetInt32(5),
-                    Year = r.IsDBNull(6) ? 0 : r.GetInt32(6),
-                    Genre = r.IsDBNull(7) ? "" : r.GetString(7)
-                }
-            );
+        while (r.Read()) rolas.Add(Read(r));
 
         return rolas;
+    }
+
+    // Lee una fila con las columnas de RolaSearchSql.Select.
+    private static Rola Read(SqliteDataReader r)
+    {
+        long idPerformer = r.IsDBNull(1) ? 0 : r.GetInt64(1);
+        long idAlbum = r.IsDBNull(2) ? Album.UnknownId : r.GetInt64(2);
+
+        return new Rola
+        {
+            Id = r.GetInt64(0),
+            IdPerformer = idPerformer,
+            IdAlbum = idAlbum,
+            Path = r.IsDBNull(3) ? "" : r.GetString(3),
+            Title = r.IsDBNull(4) ? "" : r.GetString(4),
+            Track = r.IsDBNull(5) ? 0 : r.GetInt32(5),
+            Year = r.IsDBNull(6) ? 0 : r.GetInt32(6),
+            Genre = r.IsDBNull(7) ? "" : r.GetString(7),
+            Performer = new Performer
+            {
+                Id = idPerformer,
+                Type = r.IsDBNull(8) ?
+                    PerformerType.Unknown : (PerformerType)r.GetInt32(8),
+                Name = r.IsDBNull(9) ? "" : r.GetString(9)
+            },
+            Album = new Album
+            {
+                Id = idAlbum,
+                Path = r.IsDBNull(10) ? "" : r.GetString(10),
+                Name = r.IsDBNull(11) ? "" : r.GetString(11),
+                Year = r.IsDBNull(12) ? 0 : r.GetInt32(12)
+            }
+        };
     }
 }

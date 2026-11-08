@@ -45,6 +45,7 @@ public sealed class UnitOfWork : IDisposable
         _log.Write($"Estableciendo conexión con la DB en {dbPath}");
         _conn = new SqliteConnection($"Data Source={dbPath};Foreign Keys=True");
         _conn.Open();
+        TextNormalizer.Register(_conn);
 
         Albums = new AlbumDao(this, _log);
         Performers = new PerformerDao(this, _log);

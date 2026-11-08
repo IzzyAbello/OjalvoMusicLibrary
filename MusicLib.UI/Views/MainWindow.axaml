@@ -70,8 +70,10 @@
                                 x:DataType="m:Rola" Binding="{Binding Track}" />
             <DataGridTextColumn Header="Título" Width="2*"
                                 x:DataType="m:Rola" Binding="{Binding Title}" />
-            <DataGridTextColumn Header="Intérprete" Width="*" />
-            <DataGridTextColumn Header="Álbum" Width="*" />
+            <DataGridTextColumn Header="Intérprete" Width="*"
+                                x:DataType="m:Rola" Binding="{Binding Performer.Name}" />
+            <DataGridTextColumn Header="Álbum" Width="*"
+                                x:DataType="m:Rola" Binding="{Binding Album.Name}" />
             <DataGridTextColumn Header="Año" Width="70"
                                 x:DataType="m:Rola" Binding="{Binding Year}" />
             <DataGridTextColumn Header="Género" Width="100"
