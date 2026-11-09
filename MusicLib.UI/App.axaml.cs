@@ -52,7 +52,8 @@ public partial class App : Application
             var window = new MainWindow();
 
             if (_dbPath is not null)
-                window.DataContext = new MainViewModel
+            {
+                var vm = new MainViewModel
                 (
                     _dbPath,
                     _log,
@@ -65,6 +66,10 @@ public partial class App : Application
                     ),
                     new FolderPicker(window)
                 );
+
+                vm.LoadRolas();
+                window.DataContext = vm;
+            }
 
             desktop.MainWindow = window;
         }

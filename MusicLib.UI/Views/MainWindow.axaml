@@ -38,6 +38,7 @@
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
           <Button Content="Búsqueda avanzada" Click="OnAdvancedSearch" />
           <Button Content="Recargar"
+                  Command="{Binding ReloadCommand}"
                   ToolTip.Tip="Volver a leer la biblioteca de la BD" />
         </StackPanel>
 

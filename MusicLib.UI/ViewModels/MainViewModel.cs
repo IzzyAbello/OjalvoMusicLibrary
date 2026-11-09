@@ -109,7 +109,7 @@ public sealed partial class MainViewModel : ObservableObject
             MineButtonText = MineText;
         }
 
-        LoadFirstRolas();
+        LoadRolas();
     }
 
     private void ReportProgress(MiningProgress p)
@@ -120,7 +120,14 @@ public sealed partial class MainViewModel : ObservableObject
         Status = $"{phase} {p.Processed}/{p.Total}...";
     }
 
-    private void LoadFirstRolas()
+    /// <summary>
+    /// Vuelve a leer las rolas de la BD y reemplaza las de la tabla. Si
+    /// falla, lo reporta en la barra de estado (y en el log) sin lanzar.
+    /// </summary>
+    /// <returns>
+    /// true si se cargaron; false si hubo un error.
+    /// </returns>
+    public bool LoadRolas()
     {
         try
         {
@@ -129,12 +136,22 @@ public sealed partial class MainViewModel : ObservableObject
 
             Rolas.Clear();
             foreach (var rola in rolas) Rolas.Add(rola);
+            return true;
         }
         catch (Exception ex)
         {
             Status = $"Error al cargar las rolas: {ex.Message}";
             _log.Write(ex.ToString());
+            return false;
         }
+    }
+
+    // Botón Recargar. El estado solo se pisa si la carga salió bien; si
+    // no, se queda el mensaje de error.
+    [RelayCommand]
+    private void Reload()
+    {
+        if (LoadRolas()) Status = $"Biblioteca recargada: {Rolas.Count} rolas.";
     }
 
     private static string Summary(MiningResult r) =>
