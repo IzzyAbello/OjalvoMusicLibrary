@@ -24,4 +24,50 @@ public sealed record RolaSearch
     string? Genre = null,
     int? YearFrom = null,
     int? YearTo = null
-);
+)
+{
+    /// <summary>
+    /// Arma los criterios a partir de los campos de la búsqueda avanzada.
+    /// </summary>
+    /// <param name="title">Título.</param>
+    /// <param name="performer">Intérprete.</param>
+    /// <param name="album">Álbum.</param>
+    /// <param name="genre">Género.</param>
+    /// <param name="yearFrom">Año mínimo, o null.</param>
+    /// <param name="yearTo">Año máximo, o null.</param>
+    /// <returns>
+    /// Los criterios listos para buscar.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Si el año mínimo es mayor que el máximo.
+    /// </exception>
+    public static RolaSearch FromFields
+    (
+        string? title,
+        string? performer,
+        string? album,
+        string? genre,
+        int? yearFrom,
+        int? yearTo
+    )
+    {
+        if (yearFrom > yearTo)
+            throw new ArgumentException
+            (
+                "El año \"desde\" no puede ser mayor que el año \"hasta\"."
+            );
+
+        return new RolaSearch
+        (
+            Title: Clean(title),
+            Performer: Clean(performer),
+            Album: Clean(album),
+            Genre: Clean(genre),
+            YearFrom: yearFrom,
+            YearTo: yearTo
+        );
+    }
+
+    private static string? Clean(string? s) =>
+        string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+}
