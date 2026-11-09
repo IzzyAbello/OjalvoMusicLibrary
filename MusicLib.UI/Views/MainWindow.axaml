@@ -30,8 +30,15 @@
         <!-- Búsqueda -->
         <Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8"
               MaxWidth="560">
-          <TextBox PlaceholderText="Buscar por título, intérprete, álbum o género..." />
-          <Button Grid.Column="1" Content="Buscar" />
+          <TextBox Text="{Binding SearchText}"
+                   PlaceholderText="Buscar por título, intérprete, álbum o género...">
+            <!-- Enter en la caja también busca. -->
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding SearchCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+          <Button Grid.Column="1" Content="Buscar"
+                  Command="{Binding SearchCommand}" />
         </Grid>
 
         <!-- Búsqueda avanzada y recarga -->

@@ -34,13 +34,19 @@ public sealed partial class MainViewModel : ObservableObject
     /// Texto de la barra de estado.
     /// </summary>
     [ObservableProperty]
-    private string _status = "";
+    public partial string Status { get; set; } = "";
 
     /// <summary>
     /// Texto del botón Minar (cambia a Cancelar mientras se mina).
     /// </summary>
     [ObservableProperty]
-    private string _mineButtonText = MineText;
+    public partial string MineButtonText { get; set; } = MineText;
+
+    /// <summary>
+    /// Texto de la caja de búsqueda simple.
+    /// </summary>
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = "";
 
     /// <summary>
     /// Constructor.
@@ -121,18 +127,23 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Vuelve a leer las rolas de la BD y reemplaza las de la tabla. Si
-    /// falla, lo reporta en la barra de estado (y en el log) sin lanzar.
+    /// Lee rolas de la DB y reemplaza las de la tabla. Si falla, lo
+    /// reporta en la barra de estado (y en el log) sin lanzar.
     /// </summary>
+    /// <param name="criteria">
+    /// Qué buscar; null = todas las rolas (FindFirst).
+    /// </param>
     /// <returns>
     /// true si se cargaron; false si hubo un error.
     /// </returns>
-    public bool LoadRolas()
+    public bool LoadRolas(RolaSearch? criteria = null)
     {
         try
         {
             using var uow = new UnitOfWork(_dbPath, _log);
-            var rolas = uow.Rolas.FindFirst();
+            var rolas = criteria is null
+                ? uow.Rolas.FindFirst()
+                : uow.Rolas.Search(criteria);
 
             Rolas.Clear();
             foreach (var rola in rolas) Rolas.Add(rola);
@@ -152,6 +163,20 @@ public sealed partial class MainViewModel : ObservableObject
     private void Reload()
     {
         if (LoadRolas()) Status = $"Biblioteca recargada: {Rolas.Count} rolas.";
+    }
+
+    // Botón Buscar (o Enter en la caja). El texto se busca en título,
+    // intérprete, álbum y género; vacío muestra todas las rolas.
+    [RelayCommand]
+    private void Search()
+    {
+        var text = SearchText.Trim();
+        // Si falla cuando busca.
+        if (!LoadRolas(new RolaSearch(Any: text))) return;
+
+        Status = text.Length == 0
+            ? $"Mostrando todas las rolas: {Rolas.Count}."
+            : $"{Rolas.Count} resultados para '{text}'.";
     }
 
     private static string Summary(MiningResult r) =>
