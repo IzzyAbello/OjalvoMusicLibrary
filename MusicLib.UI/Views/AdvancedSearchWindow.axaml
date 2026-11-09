@@ -1,6 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MusicLib.UI.ViewModels"
         x:Class="MusicLib.UI.Views.AdvancedSearchWindow"
+        x:DataType="vm:AdvancedSearchViewModel"
         Title="Búsqueda avanzada"
         Width="440" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">
@@ -9,21 +11,39 @@
     <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
           RowSpacing="8" ColumnSpacing="8">
       <TextBlock Grid.Row="0" Text="Título" VerticalAlignment="Center" />
-      <TextBox Grid.Row="0" Grid.Column="1" />
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Title}" />
       <TextBlock Grid.Row="1" Text="Intérprete" VerticalAlignment="Center" />
-      <TextBox Grid.Row="1" Grid.Column="1" />
+      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Performer}" />
       <TextBlock Grid.Row="2" Text="Álbum" VerticalAlignment="Center" />
-      <TextBox Grid.Row="2" Grid.Column="1" />
+      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Album}" />
       <TextBlock Grid.Row="3" Text="Género" VerticalAlignment="Center" />
-      <TextBox Grid.Row="3" Grid.Column="1" />
+      <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Genre}" />
+
+      <!-- Años: solo enteros de 0 a 9999, sin flechas; vacío = sin límite. -->
       <TextBlock Grid.Row="4" Text="Año desde" VerticalAlignment="Center" />
-      <TextBox Grid.Row="4" Grid.Column="1" />
+      <NumericUpDown Grid.Row="4" Grid.Column="1"
+                     Value="{Binding YearFrom}" PlaceholderText="AAAA"
+                     Minimum="0" Maximum="9999" Increment="1"
+                     FormatString="0" ParsingNumberStyle="Integer"
+                     ShowButtonSpinner="False" />
       <TextBlock Grid.Row="5" Text="Año hasta" VerticalAlignment="Center" />
-      <TextBox Grid.Row="5" Grid.Column="1" />
+      <NumericUpDown Grid.Row="5" Grid.Column="1"
+                     Value="{Binding YearTo}" PlaceholderText="AAAA"
+                     Minimum="0" Maximum="9999" Increment="1"
+                     FormatString="0" ParsingNumberStyle="Integer"
+                     ShowButtonSpinner="False" />
     </Grid>
+
+    <!-- Solo se ve si hay un error de validación. -->
+    <TextBlock Text="{Binding Error}" Foreground="Red" TextWrapping="Wrap"
+               IsVisible="{Binding Error,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-      <Button Content="Cancelar" Click="OnClose" />
-      <Button Content="Buscar" Classes="accent" Click="OnClose" />
+      <Button Content="Cancelar" Command="{Binding CancelCommand}"
+              IsCancel="True" />
+      <Button Content="Buscar" Classes="accent" Command="{Binding SearchCommand}"
+              IsDefault="True" />
     </StackPanel>
   </StackPanel>
 

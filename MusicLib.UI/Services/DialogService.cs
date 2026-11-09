@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using MusicLib.Data;
+using MusicLib.UI.ViewModels;
 using MusicLib.UI.Views;
 
 namespace MusicLib.UI.Services;
@@ -21,5 +22,6 @@ public sealed class DialogService : IDialogService
 
     /// <inheritdoc />
     public Task<RolaSearch?> ShowAdvancedSearchAsync() =>
-        new AdvancedSearchWindow().ShowDialog<RolaSearch?>(_owner);
+        new AdvancedSearchWindow(new AdvancedSearchViewModel())
+            .ShowDialog<RolaSearch?>(_owner);
 }
