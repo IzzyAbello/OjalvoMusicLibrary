@@ -131,7 +131,7 @@ public sealed class RolaSearchSqlTests
     }
 
     /// <summary>
-    /// El texto del usuario nunca entra al SQL: solo viaja en parámetros.
+    /// El texto del usuario nunca entra al SQL.
     /// </summary>
     [Fact]
     public void Build_UserText_NeverAppearsInSql()
