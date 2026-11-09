@@ -64,7 +64,8 @@ public partial class App : Application
                         new TagReader(_log),
                         _log
                     ),
-                    new FolderPicker(window)
+                    new FolderPicker(window),
+                    new DialogService(window)
                 );
 
                 vm.LoadRolas();

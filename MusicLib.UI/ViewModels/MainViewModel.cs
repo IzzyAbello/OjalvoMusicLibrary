@@ -21,6 +21,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ILog _log;
     private readonly Miner _miner;
     private readonly IFolderPicker _folderPicker;
+    private readonly IDialogService _dialogs;
 
     // No null mientras hay una minería en curso.
     private CancellationTokenSource? _cts;
@@ -63,18 +64,23 @@ public sealed partial class MainViewModel : ObservableObject
     /// <param name="folderPicker">
     /// Selector de carpetas.
     /// </param>
+    /// <param name="dialogs">
+    /// Abre las ventanas secundarias.
+    /// </param>
     public MainViewModel
     (
         string dbPath,
         ILog log,
         Miner miner,
-        IFolderPicker folderPicker
+        IFolderPicker folderPicker,
+        IDialogService dialogs
     )
     {
         _dbPath = dbPath;
         _log = log;
         _miner = miner;
         _folderPicker = folderPicker;
+        _dialogs = dialogs;
     }
 
     // Concurrente para que el mismo botón sirva de "Cancelar" mientras
@@ -177,6 +183,18 @@ public sealed partial class MainViewModel : ObservableObject
         Status = text.Length == 0
             ? $"Mostrando todas las rolas: {Rolas.Count}."
             : $"{Rolas.Count} resultados para '{text}'.";
+    }
+
+    // Botón Búsqueda avanzada: abre la ventana y, si no se canceló,
+    // busca con los criterios que regresa.
+    [RelayCommand]
+    private async Task AdvancedSearchAsync()
+    {
+        var criteria = await _dialogs.ShowAdvancedSearchAsync();
+        if (criteria is null) return;
+
+        if (LoadRolas(criteria))
+            Status = $"{Rolas.Count} resultados (búsqueda avanzada).";
     }
 
     private static string Summary(MiningResult r) =>
