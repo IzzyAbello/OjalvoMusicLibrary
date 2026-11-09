@@ -163,11 +163,13 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    // Botón Recargar. El estado solo se pisa si la carga salió bien; si
-    // no, se queda el mensaje de error.
+    // Botón Recargar: limpia la búsqueda y vuelve a mostrar todo. El
+    // estado solo se toca si la carga salió bien; si no, se queda el
+    // mensaje de error.
     [RelayCommand]
     private void Reload()
     {
+        SearchText = "";
         if (LoadRolas()) Status = $"Biblioteca recargada: {Rolas.Count} rolas.";
     }
 
