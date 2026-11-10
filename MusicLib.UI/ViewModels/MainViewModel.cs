@@ -26,6 +26,10 @@ public sealed partial class MainViewModel : ObservableObject
     // No null mientras hay una minería en curso.
     private CancellationTokenSource? _cts;
 
+    // Últimos criterios cargados (null = todas), para repetir la misma
+    // búsqueda al recargar después de editar.
+    private RolaSearch? _lastCriteria;
+
     /// <summary>
     /// Rolas que muestra la tabla.
     /// </summary>
@@ -54,6 +58,7 @@ public sealed partial class MainViewModel : ObservableObject
     /// null si no hay ninguna.
     /// </summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditRolaCommand))]
     public partial Rola? SelectedRola { get; set; }
 
     /// <summary>
@@ -160,6 +165,7 @@ public sealed partial class MainViewModel : ObservableObject
 
             Rolas.Clear();
             foreach (var rola in rolas) Rolas.Add(rola);
+            _lastCriteria = criteria;
             return true;
         }
         catch (Exception ex)
@@ -205,6 +211,22 @@ public sealed partial class MainViewModel : ObservableObject
         if (LoadRolas(criteria))
             Status = $"{Rolas.Count} resultados (búsqueda avanzada).";
     }
+
+    // Botón Editar rola: abre el editor y, si se guardó, repite la última
+    // búsqueda y vuelve a seleccionar la rola por su id (si sigue en la
+    // tabla; si ya no cumple el filtro, queda sin selección).
+    [RelayCommand(CanExecute = nameof(CanEditRola))]
+    private async Task EditRolaAsync()
+    {
+        if (SelectedRola is not { } rola) return;
+        if (!await _dialogs.ShowRolaEditorAsync(rola)) return;
+
+        if (!LoadRolas(_lastCriteria)) return;
+        SelectedRola = Rolas.FirstOrDefault(r => r.Id == rola.Id);
+        Status = "Rola actualizada.";
+    }
+
+    private bool CanEditRola() => SelectedRola is not null;
 
     private static string Summary(MiningResult r) =>
         (r.Cancelled ? "Minado cancelado. " : "Minado terminado. ") +

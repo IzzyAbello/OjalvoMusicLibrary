@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using MusicLib.Data;
 using MusicLib.Logging;
 using MusicLib.Mining;
 using MusicLib.UI.Services;
@@ -65,7 +66,11 @@ public partial class App : Application
                         _log
                     ),
                     new FolderPicker(window),
-                    new DialogService(window)
+                    new DialogService
+                    (
+                        window,
+                        new LibraryEditor(_dbPath, _log)
+                    )
                 );
 
                 vm.LoadRolas();

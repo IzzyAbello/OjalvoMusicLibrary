@@ -1,18 +1,28 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
+using MusicLib.UI.ViewModels;
 
 namespace MusicLib.UI.Views;
 
 /// <summary>
-/// Ventana dedicada a editar los metadatos de una rola.
+/// Ventana para editar los datos de una rola.
 /// </summary>
 public partial class RolaEditorWindow : Window
 {
     /// <summary>
-    /// Constructor.
+    /// Constructor para el previsualizador de XAML.
     /// </summary>
     public RolaEditorWindow() => InitializeComponent();
 
-    // Por ahora los dos botones solo cierran la ventana.
-    private void OnClose(object? sender, RoutedEventArgs e) => Close();
+    /// <summary>
+    /// Constructor de producción.
+    /// </summary>
+    /// <param name="vm">
+    /// ViewModel de la ventana; cuando pide cerrar, la ventana se cierra
+    /// devolviendo si se guardó.
+    /// </param>
+    public RolaEditorWindow(RolaEditorViewModel vm) : this()
+    {
+        DataContext = vm;
+        vm.CloseRequested += saved => Close(saved);
+    }
 }
