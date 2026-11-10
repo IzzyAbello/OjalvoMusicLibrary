@@ -54,4 +54,19 @@ internal sealed class AlbumDao : IAlbumDao
         album.Id = (long)cmd.ExecuteScalar()!;
         return album.Id;
     }
+
+    public bool Update(Album album)
+    {
+        _log.Write($"Actualizando el Album {album.Id}: {album.Name}");
+        using var cmd = _uow.CreateCommand
+        (
+            "UPDATE albums SET name = $name, year = $year " +
+            "WHERE id_album = $id"
+        );
+        cmd.Parameters.AddWithValue("$name", album.Name);
+        cmd.Parameters.AddWithValue("$year", album.Year);
+        cmd.Parameters.AddWithValue("$id", album.Id);
+
+        return cmd.ExecuteNonQuery() == 1;
+    }
 }

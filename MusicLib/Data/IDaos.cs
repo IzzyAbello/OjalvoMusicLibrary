@@ -16,6 +16,18 @@ public interface IAlbumDao
     /// Inserta y devuelve el id generado.
     /// </summary>
     long Insert(Album album);
+
+    /// <summary>
+    /// Actualiza nombre y año del álbum con ese id; todas sus rolas lo
+    /// siguen porque apuntan al id.
+    /// </summary>
+    /// <param name="album">
+    /// Álbum con el id a actualizar y los valores nuevos.
+    /// </param>
+    /// <returns>
+    /// true si se actualizó; false si no existe un álbum con ese id.
+    /// </returns>
+    bool Update(Album album);
 }
 
 /// <summary>
@@ -53,6 +65,18 @@ public interface IRolaDao
     /// Inserta y devuelve el id generado.
     /// </summary>
     long Insert(Rola rola);
+
+    /// <summary>
+    /// Actualiza título, pista, año, género e intérprete de la rola con
+    /// ese id.
+    /// </summary>
+    /// <param name="rola">
+    /// Rola con el id a actualizar y los valores nuevos.
+    /// </param>
+    /// <returns>
+    /// true si se actualizó; false si no existe una rola con ese id.
+    /// </returns>
+    bool Update(Rola rola);
 
     /// <summary>
     /// Cantidad máxima de rolas que devuelve Search si no se indica otra.

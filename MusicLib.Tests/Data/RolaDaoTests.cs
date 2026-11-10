@@ -6,7 +6,7 @@ using Xunit;
 namespace MusicLib.Tests.Data;
 
 /// <summary>
-/// Pruebas de RolaDao.Search y FindFirst contra una DB real.
+/// Pruebas de RolaDao contra una DB real.
 /// </summary>
 public sealed class RolaDaoTests : IDisposable
 {
@@ -241,5 +241,80 @@ public sealed class RolaDaoTests : IDisposable
         (
             () => uow.Rolas.Search(null!)
         );
+    }
+
+    private Rola Find(string title) =>
+        Assert.Single(Search(new RolaSearch(Title: title)));
+
+    /// <summary>
+    /// Update cambia título, pista, año, género e intérprete; la ruta y el
+    /// álbum se quedan igual.
+    /// </summary>
+    [Fact]
+    public void Update_ChangesEditableFields_KeepsPathAndAlbum()
+    {
+        var original = Find("Dunkelheit");
+        var ninos = Find("Cañón ñandú").IdPerformer;
+
+        bool updated;
+        using (var uow = new UnitOfWork(_db))
+            updated = uow.Rolas.Update
+            (
+                new Rola
+                {
+                    Id = original.Id,
+                    Title = "Nuevo título",
+                    Track = 9,
+                    Year = 2001,
+                    Genre = "Ambient",
+                    IdPerformer = ninos,
+                    // Valores distintos a propósito: Update debe ignorarlos.
+                    Path = "/otra/ruta.mp3",
+                    IdAlbum = Album.UnknownId
+                }
+            );
+
+        Assert.True(updated);
+        var after = Find("Nuevo título");
+        Assert.Equal(original.Id, after.Id);
+        Assert.Equal(9, after.Track);
+        Assert.Equal(2001, after.Year);
+        Assert.Equal("Ambient", after.Genre);
+        Assert.Equal("Los Niños Ñoños", after.Performer!.Name);
+        Assert.Equal(original.Path, after.Path);
+        Assert.Equal(original.IdAlbum, after.IdAlbum);
+    }
+
+    /// <summary>
+    /// Update solo toca la rola indicada.
+    /// </summary>
+    [Fact]
+    public void Update_OnlyChangesThatRola()
+    {
+        var target = Find("Dunkelheit");
+
+        using (var uow = new UnitOfWork(_db))
+        {
+            target.Title = "Cambiada";
+            uow.Rolas.Update(target);
+        }
+
+        Assert.Equal
+        (
+            ["Cambiada", "Jesu Død", "Cañón ñandú"],
+            Titles(new RolaSearch())
+        );
+    }
+
+    /// <summary>
+    /// Un id inexistente no cambia nada y devuelve false.
+    /// </summary>
+    [Fact]
+    public void Update_UnknownId_ReturnsFalseAndChangesNothing()
+    {
+        using var uow = new UnitOfWork(_db);
+
+        Assert.False(uow.Rolas.Update(new Rola { Id = 999, Title = "X" }));
+        Assert.DoesNotContain("X", Titles(new RolaSearch()));
     }
 }

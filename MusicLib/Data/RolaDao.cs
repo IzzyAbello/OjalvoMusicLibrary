@@ -50,6 +50,25 @@ internal sealed class RolaDao : IRolaDao
         return rola.Id;
     }
 
+    public bool Update(Rola rola)
+    {
+        _log.Write($"Actualizando la Rola {rola.Id}: {rola.Title}");
+        using var cmd = _uow.CreateCommand
+        (
+            "UPDATE rolas SET title = $title, track = $track, " +
+            "year = $year, genre = $genre, id_performer = $perf " +
+            "WHERE id_rola = $id"
+        );
+        cmd.Parameters.AddWithValue("$title", rola.Title);
+        cmd.Parameters.AddWithValue("$track", rola.Track);
+        cmd.Parameters.AddWithValue("$year", rola.Year);
+        cmd.Parameters.AddWithValue("$genre", rola.Genre);
+        cmd.Parameters.AddWithValue("$perf", rola.IdPerformer);
+        cmd.Parameters.AddWithValue("$id", rola.Id);
+
+        return cmd.ExecuteNonQuery() == 1;
+    }
+
     public IReadOnlyList<Rola> FindFirst
     (
         int count = IRolaDao.DefaultFindFirstCount
