@@ -247,11 +247,11 @@ public sealed class RolaDaoTests : IDisposable
         Assert.Single(Search(new RolaSearch(Title: title)));
 
     /// <summary>
-    /// Update cambia título, pista, año, género e intérprete; la ruta y el
-    /// álbum se quedan igual.
+    /// Update cambia título, pista, año, género, intérprete y álbum; la
+    /// ruta se queda igual.
     /// </summary>
     [Fact]
-    public void Update_ChangesEditableFields_KeepsPathAndAlbum()
+    public void Update_ChangesEditableFields_KeepsPath()
     {
         var original = Find("Dunkelheit");
         var ninos = Find("Cañón ñandú").IdPerformer;
@@ -268,9 +268,9 @@ public sealed class RolaDaoTests : IDisposable
                     Year = 2001,
                     Genre = "Ambient",
                     IdPerformer = ninos,
-                    // Valores distintos a propósito: Update debe ignorarlos.
-                    Path = "/otra/ruta.mp3",
-                    IdAlbum = Album.UnknownId
+                    IdAlbum = Album.UnknownId,
+                    // Distinta a propósito: Update debe ignorarla.
+                    Path = "/otra/ruta.mp3"
                 }
             );
 
@@ -282,7 +282,7 @@ public sealed class RolaDaoTests : IDisposable
         Assert.Equal("Ambient", after.Genre);
         Assert.Equal("Los Niños Ñoños", after.Performer!.Name);
         Assert.Equal(original.Path, after.Path);
-        Assert.Equal(original.IdAlbum, after.IdAlbum);
+        Assert.Equal(Album.UnknownId, after.IdAlbum);
     }
 
     /// <summary>
@@ -316,5 +316,32 @@ public sealed class RolaDaoTests : IDisposable
 
         Assert.False(uow.Rolas.Update(new Rola { Id = 999, Title = "X" }));
         Assert.DoesNotContain("X", Titles(new RolaSearch()));
+    }
+
+    /// <summary>
+    /// FindById trae la rola con su intérprete y su álbum.
+    /// </summary>
+    [Fact]
+    public void FindById_ReturnsRolaWithPerformerAndAlbum()
+    {
+        var id = Find("Dunkelheit").Id;
+        using var uow = new UnitOfWork(_db);
+
+        var rola = uow.Rolas.FindById(id);
+
+        Assert.NotNull(rola);
+        Assert.Equal("Dunkelheit", rola.Title);
+        Assert.Equal("Burzum", rola.Performer!.Name);
+        Assert.Equal("Filosofem", rola.Album!.Name);
+    }
+
+    /// <summary>
+    /// Un id inexistente da null.
+    /// </summary>
+    [Fact]
+    public void FindById_UnknownId_ReturnsNull()
+    {
+        using var uow = new UnitOfWork(_db);
+        Assert.Null(uow.Rolas.FindById(999));
     }
 }

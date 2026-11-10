@@ -93,6 +93,7 @@ public sealed partial class RolaEditorViewModel : ObservableObject
                 _id,
                 Title,
                 PerformerName,
+                AlbumName,
                 (int)(Track ?? 0),
                 (int)(Year ?? 0),
                 Genre

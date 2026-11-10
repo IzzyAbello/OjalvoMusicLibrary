@@ -62,6 +62,13 @@ public interface IRolaDao
     const int DefaultFindFirstCount = int.MaxValue;
 
     /// <summary>
+    /// Busca una rola por su id, con su intérprete y su álbum.
+    /// </summary>
+    /// <param name="id">Id de la rola.</param>
+    /// <returns>La rola, o null si no existe.</returns>
+    Rola? FindById(long id);
+
+    /// <summary>
     /// Consulta a la BD si ya existe una rola con esa ruta.
     /// </summary>
     bool ExistsByPath(string path);
@@ -72,8 +79,8 @@ public interface IRolaDao
     long Insert(Rola rola);
 
     /// <summary>
-    /// Actualiza título, pista, año, género e intérprete de la rola con
-    /// ese id.
+    /// Actualiza título, pista, año, género, intérprete y álbum de la
+    /// rola con ese id (la ruta no cambia).
     /// </summary>
     /// <param name="rola">
     /// Rola con el id a actualizar y los valores nuevos.

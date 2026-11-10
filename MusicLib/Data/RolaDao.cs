@@ -56,7 +56,8 @@ internal sealed class RolaDao : IRolaDao
         using var cmd = _uow.CreateCommand
         (
             "UPDATE rolas SET title = $title, track = $track, " +
-            "year = $year, genre = $genre, id_performer = $perf " +
+            "year = $year, genre = $genre, id_performer = $perf, " +
+            "id_album = $album " +
             "WHERE id_rola = $id"
         );
         cmd.Parameters.AddWithValue("$title", rola.Title);
@@ -64,9 +65,22 @@ internal sealed class RolaDao : IRolaDao
         cmd.Parameters.AddWithValue("$year", rola.Year);
         cmd.Parameters.AddWithValue("$genre", rola.Genre);
         cmd.Parameters.AddWithValue("$perf", rola.IdPerformer);
+        cmd.Parameters.AddWithValue("$album", rola.IdAlbum);
         cmd.Parameters.AddWithValue("$id", rola.Id);
 
         return cmd.ExecuteNonQuery() == 1;
+    }
+
+    public Rola? FindById(long id)
+    {
+        using var cmd = _uow.CreateCommand
+        (
+            RolaSearchSql.Select + " WHERE r.id_rola = $id"
+        );
+        cmd.Parameters.AddWithValue("$id", id);
+
+        using var r = cmd.ExecuteReader();
+        return r.Read() ? Read(r) : null;
     }
 
     public IReadOnlyList<Rola> FindFirst

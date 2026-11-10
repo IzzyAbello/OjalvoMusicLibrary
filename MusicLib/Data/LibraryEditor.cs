@@ -28,30 +28,37 @@ public sealed class LibraryEditor
     }
 
     /// <summary>
-    /// Edita una rola. El intérprete se reasigna solo para esta rola: si ya
-    /// existe uno con ese nombre se usa; si no, se crea.
+    /// Edita una rola. El intérprete y el álbum se reasignan solo para
+    /// esta rola: si ya existe uno con ese nombre se usa; si no, se crea.
+    /// El álbum se busca en el directorio de la rola (nombre + directorio)
+    /// y, si el nombre no cambió, la rola se queda en su álbum actual.
     /// </summary>
     /// <param name="id">Id de la rola.</param>
     /// <param name="title">Título nuevo; no puede estar vacío.</param>
     /// <param name="performerName">
     /// Nombre del intérprete; no puede estar vacío.
     /// </param>
+    /// <param name="albumName">
+    /// Nombre del álbum; no puede estar vacío. Un álbum nuevo toma el año
+    /// de la rola.
+    /// </param>
     /// <param name="track">Pista; no negativa.</param>
     /// <param name="year">Año; no negativo.</param>
     /// <param name="genre">Género; vacío se guarda como Rola.UnknownGenre.</param>
     /// <returns>
     /// true si se guardó; false si no existe una rola con ese id (y
-    /// entonces no se crea ningún intérprete).
+    /// entonces no se crea ningún intérprete ni álbum).
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// Si el título o el intérprete están vacíos, o la pista o el año son
-    /// negativos.
+    /// Si el título, el intérprete o el álbum están vacíos, o la pista o
+    /// el año son negativos.
     /// </exception>
     public bool UpdateRola
     (
         long id,
         string title,
         string performerName,
+        string albumName,
         int track,
         int year,
         string genre
@@ -62,6 +69,10 @@ public sealed class LibraryEditor
         (
             performerName, "El intérprete no puede estar vacío."
         );
+        var cleanAlbum = Required
+        (
+            albumName, "El álbum no puede estar vacío."
+        );
         if (track < 0)
             throw new ArgumentException("La pista no puede ser negativa.");
         if (year < 0)
@@ -69,6 +80,9 @@ public sealed class LibraryEditor
 
         using var uow = new UnitOfWork(_dbPath, _log);
         uow.Begin();
+
+        var rola = uow.Rolas.FindById(id);
+        if (rola is null) return false;
 
         long idPerformer = uow.Performers.FindByName(cleanPerformer)?.Id
             ?? uow.Performers.Insert
@@ -80,6 +94,17 @@ public sealed class LibraryEditor
                 }
             );
 
+        long idAlbum = rola.IdAlbum;
+        if (cleanAlbum != rola.Album?.Name)
+        {
+            var dir = Path.GetDirectoryName(rola.Path) ?? "";
+            idAlbum = uow.Albums.FindByNameAndPath(cleanAlbum, dir)?.Id
+                ?? uow.Albums.Insert
+                (
+                    new Album { Name = cleanAlbum, Path = dir, Year = year }
+                );
+        }
+
         var updated = uow.Rolas.Update
         (
             new Rola
@@ -87,6 +112,7 @@ public sealed class LibraryEditor
                 Id = id,
                 Title = cleanTitle,
                 IdPerformer = idPerformer,
+                IdAlbum = idAlbum,
                 Track = track,
                 Year = year,
                 Genre = string.IsNullOrWhiteSpace(genre)

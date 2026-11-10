@@ -10,7 +10,7 @@ namespace MusicLib.Data;
 internal static class RolaSearchSql
 {
     // Índices de columnas que lee RolaDao.Read.
-    private const string Select =
+    internal const string Select =
         "SELECT r.id_rola, r.id_performer, r.id_album, r.path, r.title, " +
         "r.track, r.year, r.genre, " +
         "p.id_type, p.name, " +

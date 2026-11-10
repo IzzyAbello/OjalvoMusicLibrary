@@ -82,7 +82,7 @@ public sealed class LibraryEditorTests : IDisposable
     {
         Assert.True
         (
-            _editor.UpdateRola(_dunkelheit, " Nueva ", "Burzum", 3, 2001, " Ambient ")
+            _editor.UpdateRola(_dunkelheit, " Nueva ", "Burzum", "Filosofem", 3, 2001, " Ambient ")
         );
 
         var rola = Get(_dunkelheit);
@@ -100,7 +100,7 @@ public sealed class LibraryEditorTests : IDisposable
     {
         var before = Performers();
 
-        _editor.UpdateRola(_dunkelheit, "Dunkelheit", " Burzum ", 1, 1996, "X");
+        _editor.UpdateRola(_dunkelheit, "Dunkelheit", " Burzum ", "Filosofem", 1, 1996, "X");
 
         Assert.Equal(before, Performers());
         Assert.Equal(Get(_jesu).IdPerformer, Get(_dunkelheit).IdPerformer);
@@ -114,7 +114,7 @@ public sealed class LibraryEditorTests : IDisposable
     {
         var before = Performers();
 
-        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Darkthrone", 1, 1996, "X");
+        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Darkthrone", "Filosofem", 1, 1996, "X");
 
         Assert.Equal(before + 1, Performers());
         var rola = Get(_dunkelheit);
@@ -129,7 +129,7 @@ public sealed class LibraryEditorTests : IDisposable
     [Fact]
     public void UpdateRola_BlankGenre_IsSavedAsUnknown()
     {
-        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Burzum", 1, 1996, "  ");
+        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Burzum", "Filosofem", 1, 1996, "  ");
         Assert.Equal(Rola.UnknownGenre, Get(_dunkelheit).Genre);
     }
 
@@ -141,19 +141,21 @@ public sealed class LibraryEditorTests : IDisposable
     [InlineData("Título", "", 1, 1996)]
     [InlineData("Título", "Nuevo intérprete", -1, 1996)]
     [InlineData("Título", "Nuevo intérprete", 1, -5)]
+    [InlineData("Título", "Burzum", 1, 1996, " ")]
     public void UpdateRola_InvalidData_ThrowsAndChangesNothing
     (
         string title,
         string performer,
         int track,
-        int year
+        int year,
+        string album = "Filosofem"
     )
     {
         var before = Performers();
 
         Assert.Throws<ArgumentException>
         (
-            () => _editor.UpdateRola(_dunkelheit, title, performer, track, year, "X")
+            () => _editor.UpdateRola(_dunkelheit, title, performer, album, track, year, "X")
         );
 
         Assert.Equal(before, Performers());
@@ -169,8 +171,80 @@ public sealed class LibraryEditorTests : IDisposable
     {
         var before = Performers();
 
-        Assert.False(_editor.UpdateRola(999, "X", "Darkthrone", 1, 1996, "X"));
+        Assert.False(_editor.UpdateRola(999, "X", "Darkthrone", "Filosofem", 1, 1996, "X"));
         Assert.Equal(before, Performers());
+    }
+
+    private int AlbumsCount() => Db.Count(_db, "albums");
+
+    /// <summary>
+    /// Un álbum nuevo se crea en el directorio de la rola, con su año, y
+    /// solo esa rola se mueve.
+    /// </summary>
+    [Fact]
+    public void UpdateRola_NewAlbum_IsCreatedOnlyForThatRola()
+    {
+        var before = AlbumsCount();
+
+        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Burzum", "Hvis", 1, 1994, "X");
+
+        Assert.Equal(before + 1, AlbumsCount());
+        var album = Get(_dunkelheit).Album!;
+        Assert.Equal("Hvis", album.Name);
+        Assert.Equal("/m/f", album.Path);
+        Assert.Equal(1994, album.Year);
+        Assert.Equal("Filosofem", Get(_jesu).Album!.Name);
+    }
+
+    /// <summary>
+    /// Si ya hay un álbum con ese nombre en el directorio, se reutiliza.
+    /// </summary>
+    [Fact]
+    public void UpdateRola_ExistingAlbumInSameFolder_IsReused()
+    {
+        var hvis = AddAlbum("Hvis", "/m/f");
+        var before = AlbumsCount();
+
+        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Burzum", " Hvis ", 1, 1994, "X");
+
+        Assert.Equal(before, AlbumsCount());
+        Assert.Equal(hvis, Get(_dunkelheit).IdAlbum);
+    }
+
+    /// <summary>
+    /// Un álbum con ese nombre en otro directorio no cuenta: se crea uno
+    /// en el directorio de la rola.
+    /// </summary>
+    [Fact]
+    public void UpdateRola_AlbumInAnotherFolder_IsNotReused()
+    {
+        var otro = AddAlbum("Hvis", "/m/otro");
+
+        _editor.UpdateRola(_dunkelheit, "Dunkelheit", "Burzum", "Hvis", 1, 1994, "X");
+
+        Assert.NotEqual(otro, Get(_dunkelheit).IdAlbum);
+        Assert.Equal("/m/f", Get(_dunkelheit).Album!.Path);
+    }
+
+    /// <summary>
+    /// Una rola del álbum Unknown que se guarda sin cambiar el álbum se
+    /// queda en Unknown (no se crea un "Unknown" en su directorio).
+    /// </summary>
+    [Fact]
+    public void UpdateRola_SameAlbumName_KeepsTheAlbum()
+    {
+        using (var uow = new UnitOfWork(_db))
+        {
+            var rola = Get(_jesu);
+            rola.IdAlbum = Album.UnknownId;
+            uow.Rolas.Update(rola);
+        }
+        var before = AlbumsCount();
+
+        _editor.UpdateRola(_jesu, "Jesu Død", "Burzum", "Unknown", 1, 1996, "X");
+
+        Assert.Equal(before, AlbumsCount());
+        Assert.Equal(Album.UnknownId, Get(_jesu).IdAlbum);
     }
 
     private long AlbumId => Get(_dunkelheit).IdAlbum;

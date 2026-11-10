@@ -15,10 +15,9 @@
       <TextBlock Grid.Row="1" Text="Intérprete" VerticalAlignment="Center" />
       <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PerformerName}" />
 
-      <!-- El álbum se edita en su propia ventana. -->
+      <!-- Cambiar el nombre mueve solo esta rola a ese álbum. -->
       <TextBlock Grid.Row="2" Text="Álbum" VerticalAlignment="Center" />
-      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AlbumName}"
-               IsReadOnly="True" />
+      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AlbumName}" />
 
       <!-- Pista y año: solo enteros de 0 a 9999, sin flechas. -->
       <TextBlock Grid.Row="3" Text="Pista" VerticalAlignment="Center" />
