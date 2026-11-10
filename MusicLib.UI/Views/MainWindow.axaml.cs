@@ -19,7 +19,4 @@ public partial class MainWindow : Window
 
     private async void OnAddGroup(object? sender, RoutedEventArgs e) =>
         await new GroupWindow().ShowDialog(this);
-
-    private async void OnEditRola(object? sender, RoutedEventArgs e) =>
-        await new RolaEditorWindow().ShowDialog(this);
 }

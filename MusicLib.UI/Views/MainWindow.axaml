@@ -68,6 +68,7 @@
 
         <DataGrid Grid.Row="0"
                   ItemsSource="{Binding Rolas}"
+                  SelectedItem="{Binding SelectedRola}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
@@ -87,15 +88,6 @@
                                 x:DataType="m:Rola" Binding="{Binding Year}" />
             <DataGridTextColumn Header="Género" Width="100"
                                 x:DataType="m:Rola" Binding="{Binding Genre}" />
-            <DataGridTemplateColumn Header="" Width="90">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate>
-                  <Button Content="Editar" Margin="4,2"
-                          HorizontalAlignment="Center"
-                          ToolTip.Tip="Editar los metadatos de esta canción" />
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
           </DataGrid.Columns>
         </DataGrid>
 
@@ -137,25 +129,39 @@
                   RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                   RowSpacing="8" ColumnSpacing="8">
               <TextBlock Grid.Row="0" Text="Título" Opacity="0.6" />
-              <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap"
+                         Text="{Binding SelectedRola.Title}" />
               <TextBlock Grid.Row="1" Text="Intérprete" Opacity="0.6" />
-              <TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap"
+                         Text="{Binding SelectedRola.Performer.Name}" />
               <TextBlock Grid.Row="2" Text="Álbum" Opacity="0.6" />
-              <TextBlock Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="2" Grid.Column="1" TextWrapping="Wrap"
+                         Text="{Binding SelectedRola.Album.Name}" />
               <TextBlock Grid.Row="3" Text="Pista" Opacity="0.6" />
-              <TextBlock Grid.Row="3" Grid.Column="1" />
+              <TextBlock Grid.Row="3" Grid.Column="1"
+                         Text="{Binding SelectedRola.Track}" />
               <TextBlock Grid.Row="4" Text="Año" Opacity="0.6" />
-              <TextBlock Grid.Row="4" Grid.Column="1" />
+              <TextBlock Grid.Row="4" Grid.Column="1"
+                         Text="{Binding SelectedRola.Year}" />
               <TextBlock Grid.Row="5" Text="Género" Opacity="0.6" />
-              <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="5" Grid.Column="1" TextWrapping="Wrap"
+                         Text="{Binding SelectedRola.Genre}" />
               <TextBlock Grid.Row="6" Text="Archivo" Opacity="0.6" />
-              <TextBlock Grid.Row="6" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="6" Grid.Column="1" TextWrapping="Wrap"
+                         Text="{Binding SelectedRola.Path}" />
               <TextBlock Grid.Row="7" Text="Carpeta del álbum" Opacity="0.6"
                          TextWrapping="Wrap" />
-              <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap" />
+              <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap"
+                         Text="{Binding SelectedRola.Album.Path}" />
             </Grid>
 
-            <Button Content="Editar metadatos" Click="OnEditRola" />
+            <!-- Deshabilitados hasta que exista la edición (P3). -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Editar rola" IsEnabled="False"
+                      ToolTip.Tip="Editar título, intérprete, pista, año y género" />
+              <Button Content="Editar álbum" IsEnabled="False"
+                      ToolTip.Tip="Editar nombre y año del álbum (todas sus rolas)" />
+            </StackPanel>
 
           </StackPanel>
         </ScrollViewer>

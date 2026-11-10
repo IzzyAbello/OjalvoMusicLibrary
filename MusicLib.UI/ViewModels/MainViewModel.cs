@@ -50,6 +50,13 @@ public sealed partial class MainViewModel : ObservableObject
     public partial string SearchText { get; set; } = "";
 
     /// <summary>
+    /// Rola seleccionada en la tabla (la que muestra el panel derecho), o
+    /// null si no hay ninguna.
+    /// </summary>
+    [ObservableProperty]
+    public partial Rola? SelectedRola { get; set; }
+
+    /// <summary>
     /// Constructor.
     /// </summary>
     /// <param name="dbPath">
