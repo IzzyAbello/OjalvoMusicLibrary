@@ -38,4 +38,9 @@ public sealed class DialogService : IDialogService
     public Task<bool> ShowRolaEditorAsync(Rola rola) =>
         new RolaEditorWindow(new RolaEditorViewModel(rola, _editor))
             .ShowDialog<bool>(_owner);
+
+    /// <inheritdoc />
+    public Task<bool> ShowAlbumEditorAsync(Album album) =>
+        new AlbumEditorWindow(new AlbumEditorViewModel(album, _editor))
+            .ShowDialog<bool>(_owner);
 }

@@ -61,6 +61,7 @@ public sealed partial class MainViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditRolaCommand))]
+    [NotifyCanExecuteChangedFor(nameof(EditAlbumCommand))]
     public partial Rola? SelectedRola { get; set; }
 
     /// <summary>
@@ -242,6 +243,23 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanEditRola() => SelectedRola is not null;
+
+    // Botón Editar álbum: igual que Editar rola, pero el cambio lo ven
+    // todas las rolas del álbum.
+    [RelayCommand(CanExecute = nameof(CanEditAlbum))]
+    private async Task EditAlbumAsync()
+    {
+        if (SelectedRola is not { Album: { } album } rola) return;
+        if (!await _dialogs.ShowAlbumEditorAsync(album)) return;
+
+        if (!LoadRolas(_lastCriteria)) return;
+        SelectedRola = Rolas.FirstOrDefault(r => r.Id == rola.Id);
+        Status = "Álbum actualizado.";
+    }
+
+    // El álbum Unknown no se edita.
+    private bool CanEditAlbum() =>
+        SelectedRola?.Album is { Id: not Album.UnknownId };
 
     // Lo llama el Toolkit cada vez que cambia SelectedRola: lee la portada
     // de la rola nueva y libera la imagen anterior.

@@ -26,4 +26,15 @@ public interface IDialogService
     /// true si se guardaron los cambios; false si se canceló.
     /// </returns>
     Task<bool> ShowRolaEditorAsync(Rola rola);
+
+    /// <summary>
+    /// Muestra el editor de un álbum como ventana modal.
+    /// </summary>
+    /// <param name="album">
+    /// Álbum a editar.
+    /// </param>
+    /// <returns>
+    /// true si se guardaron los cambios; false si se canceló.
+    /// </returns>
+    Task<bool> ShowAlbumEditorAsync(Album album);
 }
