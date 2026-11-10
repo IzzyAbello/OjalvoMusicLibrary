@@ -65,6 +65,7 @@ public partial class App : Application
                         new TagReader(_log),
                         _log
                     ),
+                    new TagReader(_log),
                     new FolderPicker(window),
                     new DialogService
                     (

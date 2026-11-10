@@ -46,6 +46,35 @@ public sealed class TagReader : ITagReader
         );
     }
 
+    /// <summary>
+    /// Lee la portada (la primera imagen de la etiqueta)
+    /// No lanza: cualquier falla se reporta en el log.
+    /// </summary>
+    /// <param name="path">
+    /// Ruta del archivo MP3.
+    /// </param>
+    /// <returns>
+    /// Los bytes de la imagen, o null si no tiene portada o no se pudo leer
+    /// el archivo.
+    /// </returns>
+    public byte[]? ReadCover(string path)
+    {
+        try
+        {
+            using var file = TagLib.File.Create
+            (
+                new ReadOnlyFileAbstraction(path)
+            );
+            var pictures = file.Tag.Pictures;
+            return pictures is { Length: > 0 } ? pictures[0].Data.Data : null;
+        }
+        catch (Exception ex)
+        {
+            _log.Write($"No se pudo leer la portada de {path}: {ex.Message}");
+            return null;
+        }
+    }
+
     private static string? Join(string[]? values) =>
         values is { Length: > 0 } ? string.Join(", ", values) : null;
 

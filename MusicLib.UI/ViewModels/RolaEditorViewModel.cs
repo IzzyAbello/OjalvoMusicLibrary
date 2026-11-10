@@ -29,7 +29,8 @@ public sealed partial class RolaEditorViewModel : ObservableObject
     /// <summary>
     /// Nombre del álbum.
     /// </summary>
-    public string AlbumName { get; }
+    [ObservableProperty]
+    public partial string AlbumName { get; set; }
 
     /// <summary>
     /// Número de pista.

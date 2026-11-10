@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MusicLib.Data;
@@ -20,6 +21,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly string _dbPath;
     private readonly ILog _log;
     private readonly Miner _miner;
+    private readonly TagReader _tagReader;
     private readonly IFolderPicker _folderPicker;
     private readonly IDialogService _dialogs;
 
@@ -62,6 +64,14 @@ public sealed partial class MainViewModel : ObservableObject
     public partial Rola? SelectedRola { get; set; }
 
     /// <summary>
+    /// Portada de la rola seleccionada, leída de su MP3; null si no hay
+    /// selección, no tiene portada o la imagen está dañada (la vista
+    /// muestra entonces el ícono de "sin portada").
+    /// </summary>
+    [ObservableProperty]
+    public partial Bitmap? Cover { get; set; }
+
+    /// <summary>
     /// Constructor.
     /// </summary>
     /// <param name="dbPath">
@@ -72,6 +82,9 @@ public sealed partial class MainViewModel : ObservableObject
     /// </param>
     /// <param name="miner">
     /// Minero reutilizable para toda la vida de la app.
+    /// </param>
+    /// <param name="tagReader">
+    /// Lee las portadas de los MP3.
     /// </param>
     /// <param name="folderPicker">
     /// Selector de carpetas.
@@ -84,6 +97,7 @@ public sealed partial class MainViewModel : ObservableObject
         string dbPath,
         ILog log,
         Miner miner,
+        TagReader tagReader,
         IFolderPicker folderPicker,
         IDialogService dialogs
     )
@@ -91,6 +105,7 @@ public sealed partial class MainViewModel : ObservableObject
         _dbPath = dbPath;
         _log = log;
         _miner = miner;
+        _tagReader = tagReader;
         _folderPicker = folderPicker;
         _dialogs = dialogs;
     }
@@ -227,6 +242,33 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private bool CanEditRola() => SelectedRola is not null;
+
+    // Lo llama el Toolkit cada vez que cambia SelectedRola: lee la portada
+    // de la rola nueva y libera la imagen anterior.
+    partial void OnSelectedRolaChanged(Rola? value)
+    {
+        var old = Cover;
+        Cover = value is null ? null : LoadCover(value.Path);
+        old?.Dispose();
+    }
+
+    // Bytes dañados hacen que Bitmap lance: se trata como "sin portada".
+    private Bitmap? LoadCover(string path)
+    {
+        var bytes = _tagReader.ReadCover(path);
+        if (bytes is null) return null;
+
+        try
+        {
+            using var stream = new MemoryStream(bytes);
+            return new Bitmap(stream);
+        }
+        catch (Exception ex)
+        {
+            _log.Write($"Portada dañada en {path}: {ex.Message}");
+            return null;
+        }
+    }
 
     private static string Summary(MiningResult r) =>
         (r.Cancelled ? "Minado cancelado. " : "Minado terminado. ") +

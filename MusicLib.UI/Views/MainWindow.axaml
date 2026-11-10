@@ -117,12 +117,20 @@
         <ScrollViewer>
           <StackPanel Spacing="14">
 
-            <Border Width="160" Height="160" CornerRadius="8"
+            <Border Width="160" Height="160" CornerRadius="8" ClipToBounds="True"
                     HorizontalAlignment="Left"
                     Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
-              <TextBlock Text="♪" FontSize="64" Opacity="0.5"
-                         HorizontalAlignment="Center"
-                         VerticalAlignment="Center" />
+              <Panel>
+                <!-- Sin portada (o dañada): el ícono de siempre. -->
+                <TextBlock Text="♪" FontSize="64" Opacity="0.5"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding Cover,
+                                       Converter={x:Static ObjectConverters.IsNull}}" />
+                <Image Source="{Binding Cover}" Stretch="UniformToFill"
+                       IsVisible="{Binding Cover,
+                                   Converter={x:Static ObjectConverters.IsNotNull}}" />
+              </Panel>
             </Border>
 
             <Grid ColumnDefinitions="110,*"
