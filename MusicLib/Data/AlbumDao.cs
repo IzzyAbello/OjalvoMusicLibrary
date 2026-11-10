@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using MusicLib.Logging;
 using MusicLib.Models;
 
@@ -26,7 +27,23 @@ internal sealed class AlbumDao : IAlbumDao
         );
         cmd.Parameters.AddWithValue("$name", name);
         cmd.Parameters.AddWithValue("$path", path);
+        return ReadOne(cmd);
+    }
 
+    public Album? FindById(long id)
+    {
+        _log.Write($"Buscando Album por id: {id}");
+        using var cmd = _uow.CreateCommand
+        (
+            "SELECT id_album, path, name, year FROM albums " +
+            "WHERE id_album = $id"
+        );
+        cmd.Parameters.AddWithValue("$id", id);
+        return ReadOne(cmd);
+    }
+
+    private static Album? ReadOne(SqliteCommand cmd)
+    {
         using var r = cmd.ExecuteReader();
         if (!r.Read()) return null;
 

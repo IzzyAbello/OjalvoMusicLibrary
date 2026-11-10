@@ -140,7 +140,7 @@ public sealed class MinerTests : IDisposable
         var row = Db.Row(_db, RolaJoin, P("Sueltas", "suelta.mp3"));
         Assert.Equal(Album.UnknownId, row[6]);
         Assert.Equal("Unknown", row[2]);
-        Assert.Equal("Unknown", row[5]);
+        Assert.Equal(Rola.UnknownGenre, row[5]);
     }
 
     /// <summary>
@@ -417,7 +417,7 @@ public sealed class MinerTests : IDisposable
         Assert.Equal(Album.UnknownId, row[6]);           // álbum desconocido
         Assert.Equal(0L, row[3]);
         Assert.Equal(0L, row[4]);
-        Assert.Equal("Unknown", row[5]);
+        Assert.Equal(Rola.UnknownGenre, row[5]);
 
         var type = Db.Scalar<long>(_db, "SELECT id_type FROM performers");
         Assert.Equal((long)PerformerType.Unknown, type);
@@ -440,7 +440,7 @@ public sealed class MinerTests : IDisposable
         Assert.Equal("vacia", row[0]);
         Assert.Equal(Performer.UnknownName, row[1]);
         Assert.Equal(Album.UnknownId, row[6]);
-        Assert.Equal("Unknown", row[5]);
+        Assert.Equal(Rola.UnknownGenre, row[5]);
         Assert.Equal(1, Albums);
     }
 

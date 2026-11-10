@@ -127,4 +127,29 @@ public sealed class AlbumDaoTests : IDisposable
         Assert.False(Update(999, "X", 1));
         Assert.Equal(0, Db.Scalar<int>(_db, "SELECT COUNT(*) FROM albums WHERE name = 'X'"));
     }
+
+    /// <summary>
+    /// FindById trae el álbum completo.
+    /// </summary>
+    [Fact]
+    public void FindById_Existing_ReturnsAlbum()
+    {
+        using var uow = new UnitOfWork(_db);
+        var album = uow.Albums.FindById(_filosofem);
+
+        Assert.NotNull(album);
+        Assert.Equal("Filosofem", album.Name);
+        Assert.Equal("/m/f", album.Path);
+        Assert.Equal(1996, album.Year);
+    }
+
+    /// <summary>
+    /// FindById con un id inexistente devuelve null.
+    /// </summary>
+    [Fact]
+    public void FindById_Unknown_ReturnsNull()
+    {
+        using var uow = new UnitOfWork(_db);
+        Assert.Null(uow.Albums.FindById(999));
+    }
 }

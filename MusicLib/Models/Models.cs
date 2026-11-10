@@ -84,6 +84,12 @@ public class Album
 public class Rola
 {
     /// <summary>
+    /// Género comodín para cuando no se conoce (lo usan el minero y la
+    /// edición).
+    /// </summary>
+    public const string UnknownGenre = "Desconocido";
+
+    /// <summary>
     /// Identificador.
     /// </summary>
     public long Id { get; set; }

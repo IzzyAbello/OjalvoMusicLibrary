@@ -259,7 +259,7 @@ public sealed class Miner
                 Title = Clean(tag.Title) ?? Path.GetFileNameWithoutExtension(file),
                 Track = tag.Track,
                 Year = tag.Year,
-                Genre = Clean(tag.Genre) ?? "Unknown"
+                Genre = Clean(tag.Genre) ?? Rola.UnknownGenre
             }
         );
     }

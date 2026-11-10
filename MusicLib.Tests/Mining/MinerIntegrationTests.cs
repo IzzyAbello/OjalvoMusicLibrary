@@ -97,7 +97,7 @@ public sealed class MinerIntegrationTests : IDisposable
         Assert.Equal("sin_tags", noTags[0]);
         Assert.Equal(Performer.UnknownName, noTags[1]);
         Assert.Equal(Album.UnknownId, noTags[3]);
-        Assert.Equal("Unknown", noTags[6]);
+        Assert.Equal(Rola.UnknownGenre, noTags[6]);
 
         Assert.Equal(before, Hashes(root));   // ningún MP3 cambió
     }

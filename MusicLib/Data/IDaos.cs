@@ -13,6 +13,11 @@ public interface IAlbumDao
     Album? FindByNameAndPath(string name, string path);
 
     /// <summary>
+    /// Busca por id. Null si no existe.
+    /// </summary>
+    Album? FindById(long id);
+
+    /// <summary>
     /// Inserta y devuelve el id generado.
     /// </summary>
     long Insert(Album album);
