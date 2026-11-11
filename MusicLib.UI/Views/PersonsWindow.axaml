@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MusicLib.UI.ViewModels"
+        xmlns:m="using:MusicLib.Models"
+        x:Class="MusicLib.UI.Views.PersonsWindow"
+        x:DataType="vm:PersonsViewModel"
+        Title="Personas"
+        Width="640" Height="420" MinWidth="480" MinHeight="300"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="16">
+
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <Button Content="Cerrar" Command="{Binding CloseCommand}"
+              IsCancel="True" />
+    </StackPanel>
+
+    <!-- Solo se ve si hubo un error al leer la DB. -->
+    <TextBlock DockPanel.Dock="Bottom" Text="{Binding Error}"
+               Foreground="Red" TextWrapping="Wrap" Margin="0,8,0,0"
+               IsVisible="{Binding Error,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+    <DataGrid ItemsSource="{Binding Persons}"
+              SelectedItem="{Binding SelectedPerson}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              SelectionMode="Single"
+              CanUserSortColumns="True"
+              CanUserResizeColumns="True"
+              GridLinesVisibility="Horizontal">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Nombre artístico" Width="*"
+                            x:DataType="m:Person" Binding="{Binding StageName}" />
+        <DataGridTextColumn Header="Nombre real" Width="*"
+                            x:DataType="m:Person" Binding="{Binding RealName}" />
+        <DataGridTextColumn Header="Nacimiento" Width="110"
+                            x:DataType="m:Person" Binding="{Binding BirthDate}" />
+        <DataGridTextColumn Header="Muerte" Width="110"
+                            x:DataType="m:Person" Binding="{Binding DeathDate}" />
+      </DataGrid.Columns>
+    </DataGrid>
+
+  </DockPanel>
+
+</Window>

@@ -14,9 +14,6 @@ public partial class MainWindow : Window
     /// </summary>
     public MainWindow() => InitializeComponent();
 
-    private async void OnAddPerson(object? sender, RoutedEventArgs e) =>
-        await new PersonWindow().ShowDialog(this);
-
     private async void OnAddGroup(object? sender, RoutedEventArgs e) =>
         await new GroupWindow().ShowDialog(this);
 }

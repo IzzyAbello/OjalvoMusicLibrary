@@ -21,8 +21,8 @@
           <Button Content="{Binding MineButtonText}"
                   Command="{Binding MineCommand}"
                   ToolTip.Tip="Elegir una carpeta y minarla" />
-          <Button Content="Agregar artista" Click="OnAddPerson"
-                  ToolTip.Tip="Dar de alta una persona" />
+          <Button Content="Personas" Command="{Binding PersonsCommand}"
+                  ToolTip.Tip="Ver las personas" />
           <Button Content="Crear grupo" Click="OnAddGroup"
                   ToolTip.Tip="Crear un grupo musical" />
         </StackPanel>

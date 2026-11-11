@@ -47,4 +47,10 @@ public interface IDialogService
     /// true si aceptó; false si canceló o cerró la ventana.
     /// </returns>
     Task<bool> ConfirmAsync(string title, string message);
+
+    /// <summary>
+    /// Muestra la ventana de personas como modal.
+    /// </summary>
+    /// <returns>Se completa cuando la ventana se cierra.</returns>
+    Task ShowPersonsAsync();
 }
