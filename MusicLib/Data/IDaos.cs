@@ -140,6 +140,36 @@ public interface IGroupDao
 }
 
 /// <summary>
+/// DAO para las membresías (tabla in_group).
+/// </summary>
+public interface IMembershipDao
+{
+    /// <summary>
+    /// Las personas que son miembros del grupo, ordenadas por nombre
+    /// artístico. Vacío si no tiene miembros o el grupo no existe.
+    /// </summary>
+    IReadOnlyList<Person> Members(long idGroup);
+
+    /// <summary>
+    /// Agrega la persona al grupo. Falla si ya es miembro o si la persona
+    /// o el grupo no existe.
+    /// </summary>
+    void Add(long idPerson, long idGroup);
+
+    /// <summary>
+    /// Quita a todos los miembros del grupo.
+    /// </summary>
+    /// <returns>Cuántas membresías se quitaron.</returns>
+    int RemoveAllOfGroup(long idGroup);
+
+    /// <summary>
+    /// Saca a la persona de todos sus grupos.
+    /// </summary>
+    /// <returns>Cuántas membresías se quitaron.</returns>
+    int RemoveAllOfPerson(long idPerson);
+}
+
+/// <summary>
 /// DAO para Rola.
 /// </summary>
 public interface IRolaDao

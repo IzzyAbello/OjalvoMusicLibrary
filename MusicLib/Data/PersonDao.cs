@@ -6,7 +6,7 @@ namespace MusicLib.Data;
 
 internal sealed class PersonDao : IPersonDao
 {
-    private const string Select =
+    internal const string Select =
         "SELECT id_person, stage_name, real_name, birth_date, death_date " +
         "FROM persons";
 
@@ -112,7 +112,7 @@ internal sealed class PersonDao : IPersonDao
         return r.Read() ? Read(r) : null;
     }
 
-    private static Person Read(SqliteDataReader r) => new()
+    internal static Person Read(SqliteDataReader r) => new()
     {
         Id = r.GetInt64(0),
         StageName = r.IsDBNull(1) ? "" : r.GetString(1),
