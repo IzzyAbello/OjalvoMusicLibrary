@@ -121,6 +121,75 @@ public sealed class GroupsEditor
         return id;
     }
 
+    /// <summary>
+    /// Edita las fechas de un grupo y reemplaza sus miembros.
+    /// </summary>
+    /// <param name="id">Id del grupo.</param>
+    /// <param name="startDate">Inicio; vacío o AAAA-MM-DD.</param>
+    /// <param name="endDate">Disolución; vacío o AAAA-MM-DD.</param>
+    /// <param name="memberIds">
+    /// Ids de TODOS los miembros.
+    /// </param>
+    /// <returns>
+    /// true si se guardó; false si no existe un grupo con ese id.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Si las fechas no pasan Validate, o algún miembro no es una persona
+    /// existente.
+    /// </exception>
+    public bool Update
+    (
+        long id,
+        string? startDate,
+        string? endDate,
+        IEnumerable<long> memberIds
+    )
+    {
+        using var uow = new UnitOfWork(_dbPath, _log);
+        uow.Begin();
+
+        var group = uow.Groups.FindById(id);
+        if (group is null) return false;
+
+        if (Validate(group.Name, startDate, endDate) is { } problem)
+            throw new ArgumentException(problem);
+
+        var members = ExistingPersons(uow, memberIds);
+
+        group.StartDate = DateText.Normalize(startDate);
+        group.EndDate = DateText.Normalize(endDate);
+        uow.Groups.Update(group);
+
+        uow.Memberships.RemoveAllOfGroup(id);
+        foreach (var idPerson in members) uow.Memberships.Add(idPerson, id);
+
+        uow.Commit();
+        return true;
+    }
+
+    /// <summary>
+    /// Elimina un grupo de manera consistente.
+    /// </summary>
+    /// <param name="id">Id del grupo.</param>
+    /// <returns>
+    /// true si se eliminó; false si no existe un grupo con ese id.
+    /// </returns>
+    public bool Delete(long id)
+    {
+        using var uow = new UnitOfWork(_dbPath, _log);
+        uow.Begin();
+
+        var group = uow.Groups.FindById(id);
+        if (group is null) return false;
+
+        uow.Memberships.RemoveAllOfGroup(id);
+        uow.Groups.Delete(id);
+        uow.Performers.UpdateType(group.Name, PerformerType.Unknown);
+
+        uow.Commit();
+        return true;
+    }
+
     private static List<long> ExistingPersons
     (
         UnitOfWork uow,

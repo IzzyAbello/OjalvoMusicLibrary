@@ -15,13 +15,15 @@ public sealed class GroupsEditorTests : IDisposable
     private readonly GroupsEditor _editor;
     private readonly long _abbath;
     private readonly long _demonaz;
+    private readonly long _mayhem;
 
     /// <summary>
     /// DB con:
     /// <list type="bullet">
     /// <item>"Immortal": intérprete Unknown con una rola.</item>
     /// <item>"Abbath" y "Demonaz": personas.</item>
-    /// <item>"Mayhem": grupo.</item>
+    /// <item>"Mayhem": grupo (inicio 1984-01-01), con Abbath como
+    /// miembro.</item>
     /// </list>
     /// </summary>
     public GroupsEditorTests()
@@ -50,7 +52,11 @@ public sealed class GroupsEditorTests : IDisposable
         (
             new Performer { Name = "Mayhem", Type = PerformerType.Group }
         );
-        uow.Groups.Insert(new Group { Name = "Mayhem" });
+        _mayhem = uow.Groups.Insert
+        (
+            new Group { Name = "Mayhem", StartDate = "1984-01-01" }
+        );
+        uow.Memberships.Add(_abbath, _mayhem);
     }
 
     /// <summary>
@@ -245,5 +251,146 @@ public sealed class GroupsEditorTests : IDisposable
 
         Assert.Equal(before, Counts());
         Assert.Equal(PerformerType.Unknown, Performer("Immortal")!.Type);
+    }
+
+    private Group Mayhem()
+    {
+        using var uow = new UnitOfWork(_db);
+        return uow.Groups.FindById(_mayhem)!;
+    }
+
+    /// <summary>
+    /// Update cambia las fechas y deja el nombre.
+    /// </summary>
+    [Fact]
+    public void Update_ChangesDates_KeepsName()
+    {
+        Assert.True(_editor.Update(_mayhem, " ", " 2000-01-01 ", [_abbath]));
+
+        var mayhem = Mayhem();
+        Assert.Equal("Mayhem", mayhem.Name);
+        Assert.Null(mayhem.StartDate);
+        Assert.Equal("2000-01-01", mayhem.EndDate);
+    }
+
+    /// <summary>
+    /// La lista de miembros reemplaza a la anterior.
+    /// </summary>
+    [Fact]
+    public void Update_ReplacesMembers()
+    {
+        _editor.Update(_mayhem, null, null, [_demonaz]);
+        Assert.Equal(["Demonaz"], Members(_mayhem));
+    }
+
+    /// <summary>
+    /// Una lista vacía deja al grupo sin miembros.
+    /// </summary>
+    [Fact]
+    public void Update_EmptyMembers_LeavesGroupWithoutMembers()
+    {
+        _editor.Update(_mayhem, null, null, []);
+
+        Assert.Empty(Members(_mayhem));
+        Assert.Equal(2, Db.Count(_db, "persons"));
+    }
+
+    /// <summary>
+    /// Solo cambia la membresía de ese grupo.
+    /// </summary>
+    [Fact]
+    public void Update_DoesNotTouchOtherGroups()
+    {
+        var darkthrone = _editor.Add("Darkthrone", null, null, [_abbath]);
+
+        _editor.Update(_mayhem, null, null, []);
+
+        Assert.Equal(["Abbath"], Members(darkthrone));
+    }
+
+    /// <summary>
+    /// Fechas inválidas o un miembro inexistente lanzan y no cambian nada.
+    /// </summary>
+    [Theory]
+    [InlineData("1984", null, false)]
+    [InlineData("2000-01-01", "1999-01-01", false)]
+    [InlineData(null, null, true)]
+    public void Update_InvalidData_ThrowsAndChangesNothing
+    (
+        string? start,
+        string? end,
+        bool unknownMember
+    )
+    {
+        long[] members = unknownMember ? [_demonaz, 999] : [_demonaz];
+
+        Assert.Throws<ArgumentException>
+        (
+            () => _editor.Update(_mayhem, start, end, members)
+        );
+
+        Assert.Equal("1984-01-01", Mayhem().StartDate);
+        Assert.Equal(["Abbath"], Members(_mayhem));
+    }
+
+    /// <summary>
+    /// Update con un id inexistente regresa false.
+    /// </summary>
+    [Fact]
+    public void Update_UnknownId_ReturnsFalse() =>
+        Assert.False(_editor.Update(999, null, null, []));
+
+    /// <summary>
+    /// Delete borra el grupo y sus membresías; las personas se quedan.
+    /// </summary>
+    [Fact]
+    public void Delete_RemovesGroupAndItsMemberships()
+    {
+        Assert.True(_editor.Delete(_mayhem));
+
+        Assert.Null(Group("Mayhem"));
+        Assert.Equal(0, Db.Count(_db, "in_group"));
+        Assert.Equal(2, Db.Count(_db, "persons"));
+    }
+
+    /// <summary>
+    /// Su intérprete regresa a Unknown y no se borra.
+    /// </summary>
+    [Fact]
+    public void Delete_PerformerGoesBackToUnknown()
+    {
+        var performers = Db.Count(_db, "performers");
+
+        _editor.Delete(_mayhem);
+
+        Assert.Equal(PerformerType.Unknown, Performer("Mayhem")!.Type);
+        Assert.Equal(performers, Db.Count(_db, "performers"));
+    }
+
+    /// <summary>
+    /// Un grupo eliminado se puede volver a dar de alta.
+    /// </summary>
+    [Fact]
+    public void Delete_ThenAdd_ReusesThePerformer()
+    {
+        var id = Performer("Mayhem")!.Id;
+
+        _editor.Delete(_mayhem);
+        _editor.Add("Mayhem", null, null, []);
+
+        Assert.Equal(id, Performer("Mayhem")!.Id);
+        Assert.Equal(PerformerType.Group, Performer("Mayhem")!.Type);
+    }
+
+    /// <summary>
+    /// Delete con un id inexistente regresa false y no cambia nada.
+    /// </summary>
+    [Fact]
+    public void Delete_UnknownId_ReturnsFalse()
+    {
+        var before = Counts();
+
+        Assert.False(_editor.Delete(999));
+        Assert.Equal(before, Counts());
     }
 }
