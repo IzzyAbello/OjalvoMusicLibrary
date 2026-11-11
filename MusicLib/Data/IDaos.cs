@@ -96,6 +96,50 @@ public interface IPersonDao
 }
 
 /// <summary>
+/// DAO para Group.
+/// </summary>
+public interface IGroupDao
+{
+    /// <summary>
+    /// Todos los grupos, ordenados por nombre.
+    /// </summary>
+    IReadOnlyList<Group> FindAll();
+
+    /// <summary>
+    /// Busca por id. Null si no existe.
+    /// </summary>
+    Group? FindById(long id);
+
+    /// <summary>
+    /// Busca por nombre exacto. Null si no existe.
+    /// </summary>
+    Group? FindByName(string name);
+
+    /// <summary>
+    /// Inserta y devuelve el id generado.
+    /// </summary>
+    long Insert(Group group);
+
+    /// <summary>
+    /// Actualiza las fechas del grupo con ese id. El nombre no cambia (es
+    /// su vínculo con su intérprete).
+    /// </summary>
+    /// <returns>
+    /// true si se actualizó; false si no existe un grupo con ese id.
+    /// </returns>
+    bool Update(Group group);
+
+    /// <summary>
+    /// Borra el grupo con ese id. Antes hay que quitarle sus miembros
+    /// (in_group), o fallan las llaves foráneas.
+    /// </summary>
+    /// <returns>
+    /// true si se borró; false si no existe un grupo con ese id.
+    /// </returns>
+    bool Delete(long id);
+}
+
+/// <summary>
 /// DAO para Rola.
 /// </summary>
 public interface IRolaDao

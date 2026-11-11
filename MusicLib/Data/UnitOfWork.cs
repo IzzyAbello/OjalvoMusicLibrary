@@ -30,6 +30,11 @@ public sealed class UnitOfWork : IDisposable
     public IPersonDao Persons { get; }
 
     /// <summary>
+    /// Acceso a los Grupos.
+    /// </summary>
+    public IGroupDao Groups { get; }
+
+    /// <summary>
     /// Acceso a las Rolas.
     /// </summary>
     public IRolaDao Rolas { get; }
@@ -55,6 +60,7 @@ public sealed class UnitOfWork : IDisposable
         Albums = new AlbumDao(this, _log);
         Performers = new PerformerDao(this, _log);
         Persons = new PersonDao(this, _log);
+        Groups = new GroupDao(this, _log);
         Rolas = new RolaDao(this, _log);
 
         _log.Write($"Unit of Work creada correctamente.");
