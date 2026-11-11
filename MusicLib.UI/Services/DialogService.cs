@@ -43,4 +43,9 @@ public sealed class DialogService : IDialogService
     public Task<bool> ShowAlbumEditorAsync(Album album) =>
         new AlbumEditorWindow(new AlbumEditorViewModel(album, _editor))
             .ShowDialog<bool>(_owner);
+
+    /// <inheritdoc />
+    public Task<bool> ConfirmAsync(string title, string message) =>
+        new ConfirmWindow(new ConfirmViewModel(title, message))
+            .ShowDialog<bool>(_owner);
 }

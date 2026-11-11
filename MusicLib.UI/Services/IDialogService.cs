@@ -37,4 +37,14 @@ public interface IDialogService
     /// true si se guardaron los cambios; false si se canceló.
     /// </returns>
     Task<bool> ShowAlbumEditorAsync(Album album);
+
+    /// <summary>
+    /// Pregunta al usuario si quiere continuar (ventana modal).
+    /// </summary>
+    /// <param name="title">Título de la ventana.</param>
+    /// <param name="message">Pregunta que se le hace.</param>
+    /// <returns>
+    /// true si aceptó; false si canceló o cerró la ventana.
+    /// </returns>
+    Task<bool> ConfirmAsync(string title, string message);
 }
