@@ -25,13 +25,18 @@ public sealed class UnitOfWork : IDisposable
     public IPerformerDao Performers { get; }
     
     /// <summary>
+    /// Acceso a las Personas.
+    /// </summary>
+    public IPersonDao Persons { get; }
+
+    /// <summary>
     /// Acceso a las Rolas.
     /// </summary>
     public IRolaDao Rolas { get; }
 
     /// <summary>
     /// Abre una sola conexión, con las llaves foráneas activadas.
-    /// Luego crea los tres DAOs
+    /// Luego crea los DAOs
     /// </summary>
     /// <param name="dbPath"> Ruta de la DB </param>
     /// <param name="log">
@@ -49,6 +54,7 @@ public sealed class UnitOfWork : IDisposable
 
         Albums = new AlbumDao(this, _log);
         Performers = new PerformerDao(this, _log);
+        Persons = new PersonDao(this, _log);
         Rolas = new RolaDao(this, _log);
 
         _log.Write($"Unit of Work creada correctamente.");

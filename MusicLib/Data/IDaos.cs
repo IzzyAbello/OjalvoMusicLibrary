@@ -52,6 +52,50 @@ public interface IPerformerDao
 }
 
 /// <summary>
+/// DAO para Person.
+/// </summary>
+public interface IPersonDao
+{
+    /// <summary>
+    /// Todas las personas, ordenadas por nombre artístico.
+    /// </summary>
+    IReadOnlyList<Person> FindAll();
+
+    /// <summary>
+    /// Busca por id. Null si no existe.
+    /// </summary>
+    Person? FindById(long id);
+
+    /// <summary>
+    /// Busca por nombre artístico exacto. Null si no existe.
+    /// </summary>
+    Person? FindByStageName(string stageName);
+
+    /// <summary>
+    /// Inserta y devuelve el id generado.
+    /// </summary>
+    long Insert(Person person);
+
+    /// <summary>
+    /// Actualiza nombre real y fechas de la persona con ese id. El nombre
+    /// artístico no cambia (es su vínculo con su intérprete).
+    /// </summary>
+    /// <returns>
+    /// true si se actualizó; false si no existe una persona con ese id.
+    /// </returns>
+    bool Update(Person person);
+
+    /// <summary>
+    /// Borra la persona con ese id. Antes hay que quitarla de sus grupos
+    /// (in_group), o fallan las llaves foráneas (integridad).
+    /// </summary>
+    /// <returns>
+    /// true si se borró; false si no existe una persona con ese id.
+    /// </returns>
+    bool Delete(long id);
+}
+
+/// <summary>
 /// DAO para Rola.
 /// </summary>
 public interface IRolaDao
