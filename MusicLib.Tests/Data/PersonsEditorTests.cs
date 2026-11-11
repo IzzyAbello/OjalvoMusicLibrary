@@ -13,12 +13,16 @@ public sealed class PersonsEditorTests : IDisposable
     private readonly TempDir _tmp = new();
     private readonly string _db;
     private readonly PersonsEditor _editor;
+    private readonly long _varg;
+    private readonly long _mayhem;
 
     /// <summary>
     /// DB con:
     /// <list type="bullet">
     /// <item>"Burzum": intérprete Unknown con una rola.</item>
-    /// <item>"Varg": persona (con su intérprete Person).</item>
+    /// <item>"Varg": persona (con su intérprete Person), miembro de
+    /// Mayhem.</item>
+    /// <item>"Euronymous": persona, miembro de Mayhem.</item>
     /// <item>"Mayhem": grupo.</item>
     /// </list>
     /// </summary>
@@ -43,8 +47,17 @@ public sealed class PersonsEditorTests : IDisposable
         (
             new Performer { Name = "Varg", Type = PerformerType.Person }
         );
-        uow.Persons.Insert(new Person { StageName = "Varg" });
-        uow.Groups.Insert(new Group { Name = "Mayhem" });
+        _varg = uow.Persons.Insert
+        (
+            new Person { StageName = "Varg", RealName = "Kristian" }
+        );
+        var euronymous = uow.Persons.Insert
+        (
+            new Person { StageName = "Euronymous" }
+        );
+        _mayhem = uow.Groups.Insert(new Group { Name = "Mayhem" });
+        uow.Memberships.Add(_varg, _mayhem);
+        uow.Memberships.Add(euronymous, _mayhem);
     }
 
     /// <summary>
@@ -199,6 +212,117 @@ public sealed class PersonsEditorTests : IDisposable
         );
 
         Assert.Equal(PersonsEditor.Validate(name, birth, death), ex.Message);
+        Assert.Equal(before, Counts());
+    }
+
+    private Person Varg()
+    {
+        using var uow = new UnitOfWork(_db);
+        return uow.Persons.FindById(_varg)!;
+    }
+
+    /// <summary>
+    /// Update cambia los detalles y deja el nombre artístico.
+    /// </summary>
+    [Fact]
+    public void Update_ChangesDetails_KeepsStageName()
+    {
+        Assert.True(_editor.Update(_varg, " Louis ", "1973-02-11", " "));
+
+        var varg = Varg();
+        Assert.Equal("Varg", varg.StageName);
+        Assert.Equal("Louis", varg.RealName);
+        Assert.Equal("1973-02-11", varg.BirthDate);
+        Assert.Null(varg.DeathDate);
+    }
+
+    /// <summary>
+    /// Fechas inválidas lanzan con el mensaje de Validate y no cambian
+    /// nada.
+    /// </summary>
+    [Theory]
+    [InlineData("1973", null)]
+    [InlineData("2000-01-01", "1999-01-01")]
+    public void Update_InvalidDates_ThrowsAndChangesNothing
+    (
+        string? birth,
+        string? death
+    )
+    {
+        var ex = Assert.Throws<ArgumentException>
+        (
+            () => _editor.Update(_varg, "Otro", birth, death)
+        );
+
+        Assert.Equal(PersonsEditor.Validate("Varg", birth, death), ex.Message);
+        Assert.Equal("Kristian", Varg().RealName);
+    }
+
+    /// <summary>
+    /// Update con un id inexistente regresa false.
+    /// </summary>
+    [Fact]
+    public void Update_UnknownId_ReturnsFalse() =>
+        Assert.False(_editor.Update(999, null, null, null));
+
+    private List<string> MayhemMembers()
+    {
+        using var uow = new UnitOfWork(_db);
+        return uow.Memberships.Members(_mayhem).Select(p => p.StageName).ToList();
+    }
+
+    /// <summary>
+    /// Delete borra la persona y la saca de sus grupos; el grupo y los
+    /// demás miembros se quedan.
+    /// </summary>
+    [Fact]
+    public void Delete_RemovesPersonAndItsMemberships()
+    {
+        Assert.True(_editor.Delete(_varg));
+
+        Assert.Null(Person("Varg"));
+        Assert.Equal(["Euronymous"], MayhemMembers());
+        Assert.Equal(2, Db.Count(_db, "persons") + Db.Count(_db, "groups"));
+    }
+
+    /// <summary>
+    /// Su intérprete regresa a Unknown y no se borra.
+    /// </summary>
+    [Fact]
+    public void Delete_PerformerGoesBackToUnknown()
+    {
+        var performers = Db.Count(_db, "performers");
+
+        _editor.Delete(_varg);
+
+        Assert.Equal(PerformerType.Unknown, Performer("Varg")!.Type);
+        Assert.Equal(performers, Db.Count(_db, "performers"));
+    }
+
+    /// <summary>
+    /// Una persona eliminada se puede volver a dar de alta como persona.
+    /// </summary>
+    [Fact]
+    public void Delete_ThenAdd_ReusesThePerformer()
+    {
+        var id = Performer("Varg")!.Id;
+
+        _editor.Delete(_varg);
+        _editor.Add("Varg", null, null, null);
+
+        Assert.Equal(id, Performer("Varg")!.Id);
+        Assert.Equal(PerformerType.Person, Performer("Varg")!.Type);
+    }
+
+    /// <summary>
+    /// Delete con un id inexistente regresa false y no cambia nada.
+    /// </summary>
+    [Fact]
+    public void Delete_UnknownId_ReturnsFalse()
+    {
+        var before = Counts();
+
+        Assert.False(_editor.Delete(999));
         Assert.Equal(before, Counts());
     }
 }

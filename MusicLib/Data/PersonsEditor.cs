@@ -114,4 +114,66 @@ public sealed class PersonsEditor
         uow.Commit();
         return id;
     }
+
+    /// <summary>
+    /// Edita los detalles de una persona.
+    /// </summary>
+    /// <param name="id">Id de la persona.</param>
+    /// <param name="realName">Nombre real; vacío se guarda como NULL.</param>
+    /// <param name="birthDate">Nacimiento; vacío o AAAA-MM-DD.</param>
+    /// <param name="deathDate">Muerte; vacío o AAAA-MM-DD.</param>
+    /// <returns>
+    /// true si se guardó; false si no existe una persona con ese id.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Si las fechas no pasan Validate.
+    /// </exception>
+    public bool Update
+    (
+        long id,
+        string? realName,
+        string? birthDate,
+        string? deathDate
+    )
+    {
+        using var uow = new UnitOfWork(_dbPath, _log);
+        uow.Begin();
+
+        var person = uow.Persons.FindById(id);
+        if (person is null) return false;
+
+        if (Validate(person.StageName, birthDate, deathDate) is { } problem)
+            throw new ArgumentException(problem);
+
+        person.RealName = DateText.Normalize(realName);
+        person.BirthDate = DateText.Normalize(birthDate);
+        person.DeathDate = DateText.Normalize(deathDate);
+        uow.Persons.Update(person);
+
+        uow.Commit();
+        return true;
+    }
+
+    /// <summary>
+    /// Elimina una persona de manera consistente. Sus rolas no se tocan.
+    /// </summary>
+    /// <param name="id">Id de la persona.</param>
+    /// <returns>
+    /// true si se eliminó; false si no existe una persona con ese id.
+    /// </returns>
+    public bool Delete(long id)
+    {
+        using var uow = new UnitOfWork(_dbPath, _log);
+        uow.Begin();
+
+        var person = uow.Persons.FindById(id);
+        if (person is null) return false;
+
+        uow.Memberships.RemoveAllOfPerson(id);
+        uow.Persons.Delete(id);
+        uow.Performers.UpdateType(person.StageName, PerformerType.Unknown);
+
+        uow.Commit();
+        return true;
+    }
 }
