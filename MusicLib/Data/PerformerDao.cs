@@ -50,4 +50,16 @@ internal sealed class PerformerDao : IPerformerDao
         performer.Id = (long)cmd.ExecuteScalar()!;
         return performer.Id;
     }
+
+    public bool UpdateType(string name, PerformerType type)
+    {
+        _log.Write($"Cambiando el tipo del Performer '{name}' a {type}");
+        using var cmd = _uow.CreateCommand
+        (
+            "UPDATE performers SET id_type = $type WHERE name = $name"
+        );
+        cmd.Parameters.AddWithValue("$type", (int)type);
+        cmd.Parameters.AddWithValue("$name", name);
+        return cmd.ExecuteNonQuery() == 1;
+    }
 }

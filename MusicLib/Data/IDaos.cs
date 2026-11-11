@@ -49,6 +49,17 @@ public interface IPerformerDao
     /// Inserta y devuelve el id generado.
     /// </summary>
     long Insert(Performer performer);
+
+    /// <summary>
+    /// Cambia el tipo del intérprete. Sus rolas no se tocan.
+    /// </summary>
+    /// <param name="name">Nombre exacto del intérprete.</param>
+    /// <param name="type">Tipo nuevo.</param>
+    /// <returns>
+    /// true si se actualizó; false si no existe un intérprete con ese
+    /// nombre.
+    /// </returns>
+    bool UpdateType(string name, PerformerType type);
 }
 
 /// <summary>
