@@ -67,7 +67,8 @@ public sealed class DialogService : IDialogService
         (
             _dbPath,
             _log,
-            new DialogService(window, _dbPath, _log)
+            new DialogService(window, _dbPath, _log),
+            new PersonsEditor(_dbPath, _log)
         );
         vm.Load();
         window.Attach(vm);

@@ -16,6 +16,7 @@ public sealed partial class PersonsViewModel : ObservableObject
     private readonly string _dbPath;
     private readonly ILog _log;
     private readonly IDialogService _dialogs;
+    private readonly PersonsEditor _editor;
 
     /// <summary>
     /// Personas que muestra la lista.
@@ -27,6 +28,7 @@ public sealed partial class PersonsViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     public partial Person? SelectedPerson { get; set; }
 
     /// <summary>
@@ -48,11 +50,19 @@ public sealed partial class PersonsViewModel : ObservableObject
     /// <param name="dialogs">
     /// Abre los diálogos sobre la ventana de personas.
     /// </param>
-    public PersonsViewModel(string dbPath, ILog log, IDialogService dialogs)
+    /// <param name="editor">Elimina personas de la BD.</param>
+    public PersonsViewModel
+    (
+        string dbPath,
+        ILog log,
+        IDialogService dialogs,
+        PersonsEditor editor
+    )
     {
         _dbPath = dbPath;
         _log = log;
         _dialogs = dialogs;
+        _editor = editor;
     }
 
     /// <summary>
@@ -103,6 +113,26 @@ public sealed partial class PersonsViewModel : ObservableObject
     }
 
     private bool HasSelection() => SelectedPerson is not null;
+
+    // Botón Eliminar: pide confirmación y, si se acepta, borra a la
+    // persona y recarga la lista.
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task DeleteAsync()
+    {
+        if (SelectedPerson is not { } person) return;
+
+        var confirmed = await _dialogs.ConfirmAsync
+        (
+            "Eliminar persona",
+            $"¿Eliminar a \"{person.StageName}\"? También sale de los " +
+            "grupos en los que esté. Sus rolas no se tocan."
+        );
+        if (!confirmed) return;
+
+        var deleted = _editor.Delete(person.Id);
+        if (!Load()) return;
+        if (!deleted) Error = "La persona ya no existe.";
+    }
 
     // Botón Cerrar (o Esc).
     [RelayCommand]
