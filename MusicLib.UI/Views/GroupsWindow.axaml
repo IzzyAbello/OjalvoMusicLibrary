@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MusicLib.UI.ViewModels"
+        xmlns:m="using:MusicLib.Models"
+        x:Class="MusicLib.UI.Views.GroupsWindow"
+        x:DataType="vm:GroupsViewModel"
+        Title="Grupos"
+        Width="560" Height="420" MinWidth="420" MinHeight="300"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="16">
+
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto"
+          Margin="0,12,0,0">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Agregar" Command="{Binding AddCommand}" />
+      </StackPanel>
+      <Button Grid.Column="1" Content="Cerrar" Command="{Binding CloseCommand}"
+              IsCancel="True" />
+    </Grid>
+
+    <!-- Solo se ve si hubo un error al leer la BD. -->
+    <TextBlock DockPanel.Dock="Bottom" Text="{Binding Error}"
+               Foreground="Red" TextWrapping="Wrap" Margin="0,8,0,0"
+               IsVisible="{Binding Error,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+    <DataGrid ItemsSource="{Binding Groups}"
+              SelectedItem="{Binding SelectedGroup}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              SelectionMode="Single"
+              CanUserSortColumns="True"
+              CanUserResizeColumns="True"
+              GridLinesVisibility="Horizontal">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Nombre" Width="*"
+                            x:DataType="m:Group" Binding="{Binding Name}" />
+        <DataGridTextColumn Header="Inicio" Width="110"
+                            x:DataType="m:Group" Binding="{Binding StartDate}" />
+        <DataGridTextColumn Header="Disolución" Width="110"
+                            x:DataType="m:Group" Binding="{Binding EndDate}" />
+      </DataGrid.Columns>
+    </DataGrid>
+
+  </DockPanel>
+
+</Window>

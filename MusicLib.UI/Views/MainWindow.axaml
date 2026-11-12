@@ -23,8 +23,8 @@
                   ToolTip.Tip="Elegir una carpeta y minarla" />
           <Button Content="Personas" Command="{Binding PersonsCommand}"
                   ToolTip.Tip="Ver las personas" />
-          <Button Content="Crear grupo" Click="OnAddGroup"
-                  ToolTip.Tip="Crear un grupo musical" />
+          <Button Content="Grupos" Command="{Binding GroupsCommand}"
+                  ToolTip.Tip="Ver los grupos" />
         </StackPanel>
 
         <!-- Búsqueda -->

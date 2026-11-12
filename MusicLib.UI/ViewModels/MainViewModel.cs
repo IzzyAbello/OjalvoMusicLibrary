@@ -292,6 +292,10 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private Task PersonsAsync() => _dialogs.ShowPersonsAsync();
 
+    // Botón Grupos: abre la ventana con la lista de grupos.
+    [RelayCommand]
+    private Task GroupsAsync() => _dialogs.ShowGroupsAsync();
+
     private static string Summary(MiningResult r) =>
         (r.Cancelled ? "Minado cancelado. " : "Minado terminado. ") +
         $"Encontradas: {r.Found}, insertadas: {r.Inserted}, " +

@@ -1,11 +1,9 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 
 namespace MusicLib.UI.Views;
 
 /// <summary>
-/// Ventana principal. Solo sabe abrir las ventanas de los botones que las
-/// tienen; el resto de botones todavía no hace nada.
+/// Ventana principal. Todo su comportamiento está en MainViewModel.
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -13,7 +11,4 @@ public partial class MainWindow : Window
     /// Constructor.
     /// </summary>
     public MainWindow() => InitializeComponent();
-
-    private async void OnAddGroup(object? sender, RoutedEventArgs e) =>
-        await new GroupWindow().ShowDialog(this);
 }

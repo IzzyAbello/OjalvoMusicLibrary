@@ -64,4 +64,21 @@ public interface IDialogService
     /// El id de la persona guardada, o null si se canceló.
     /// </returns>
     Task<long?> ShowPersonEditorAsync(Person? person = null);
+
+    /// <summary>
+    /// Muestra la ventana de grupos como modal.
+    /// </summary>
+    /// <returns>Se completa cuando la ventana se cierra.</returns>
+    Task ShowGroupsAsync();
+
+    /// <summary>
+    /// Muestra el formulario de grupo (modal).
+    /// </summary>
+    /// <param name="group">
+    /// Grupo a editar, o null para agregar uno nuevo.
+    /// </param>
+    /// <returns>
+    /// El id del grupo guardado, o null si se canceló.
+    /// </returns>
+    Task<long?> ShowGroupEditorAsync(Group? group = null);
 }

@@ -1,23 +1,42 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MusicLib.UI.ViewModels"
         x:Class="MusicLib.UI.Views.GroupWindow"
-        Title="Crear grupo"
+        x:DataType="vm:GroupEditorViewModel"
+        Title="{Binding Title}"
         Width="440" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">
 
   <StackPanel Margin="20" Spacing="12">
     <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto"
           RowSpacing="8" ColumnSpacing="8">
+      <!-- Al editar no se cambia: es el vínculo con su intérprete. -->
       <TextBlock Grid.Row="0" Text="Nombre" VerticalAlignment="Center" />
-      <TextBox Grid.Row="0" Grid.Column="1" />
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}"
+               IsReadOnly="{Binding IsEditing}" />
       <TextBlock Grid.Row="1" Text="Inicio" VerticalAlignment="Center" />
-      <TextBox Grid.Row="1" Grid.Column="1" PlaceholderText="AAAA-MM-DD (opcional)" />
-      <TextBlock Grid.Row="2" Text="Fin" VerticalAlignment="Center" />
-      <TextBox Grid.Row="2" Grid.Column="1" PlaceholderText="AAAA-MM-DD (opcional)" />
+      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StartDate}"
+               PlaceholderText="AAAA-MM-DD (opcional)" />
+      <TextBlock Grid.Row="2" Text="Disolución" VerticalAlignment="Center" />
+      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EndDate}"
+               PlaceholderText="AAAA-MM-DD (opcional)" />
     </Grid>
+
+    <!-- Por qué Guardar está deshabilitado (se actualiza al escribir). -->
+    <TextBlock Text="{Binding Problem}" Opacity="0.7" TextWrapping="Wrap"
+               IsVisible="{Binding Problem,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+    <!-- Error del núcleo al guardar (por ejemplo, nombre repetido). -->
+    <TextBlock Text="{Binding Error}" Foreground="Red" TextWrapping="Wrap"
+               IsVisible="{Binding Error,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-      <Button Content="Cancelar" Click="OnClose" />
-      <Button Content="Crear" Classes="accent" Click="OnClose" />
+      <Button Content="Cancelar" Command="{Binding CancelCommand}"
+              IsCancel="True" />
+      <Button Content="Guardar" Classes="accent" Command="{Binding SaveCommand}"
+              IsDefault="True" />
     </StackPanel>
   </StackPanel>
 

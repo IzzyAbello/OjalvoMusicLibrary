@@ -60,8 +60,6 @@ public sealed class DialogService : IDialogService
     /// <inheritdoc />
     public Task ShowPersonsAsync()
     {
-        // La ventana es la dueña de los diálogos que abre su ViewModel
-        // (formulario, confirmaciones), así quedan encima de ella.
         var window = new PersonsWindow();
         var vm = new PersonsViewModel
         (
@@ -81,4 +79,42 @@ public sealed class DialogService : IDialogService
         (
             new PersonEditorViewModel(new PersonsEditor(_dbPath, _log), person)
         ).ShowDialog<long?>(_owner);
+
+    /// <inheritdoc />
+    public Task ShowGroupsAsync()
+    {
+        var window = new GroupsWindow();
+        var vm = new GroupsViewModel
+        (
+            _dbPath,
+            _log,
+            new DialogService(window, _dbPath, _log)
+        );
+        vm.Load();
+        window.Attach(vm);
+        return window.ShowDialog(_owner);
+    }
+
+    /// <inheritdoc />
+    public Task<long?> ShowGroupEditorAsync(Group? group = null)
+    {
+        List<long> memberIds = [];
+        if (group is not null)
+        {
+            using var uow = new UnitOfWork(_dbPath, _log);
+            memberIds = uow.Memberships.Members(group.Id)
+                .Select(p => p.Id)
+                .ToList();
+        }
+
+        return new GroupWindow
+        (
+            new GroupEditorViewModel
+            (
+                new GroupsEditor(_dbPath, _log),
+                group,
+                memberIds
+            )
+        ).ShowDialog<long?>(_owner);
+    }
 }
