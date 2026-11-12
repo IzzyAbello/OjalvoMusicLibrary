@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MusicLib.UI.ViewModels"
+        xmlns:m="using:MusicLib.Models"
         x:Class="MusicLib.UI.Views.GroupWindow"
         x:DataType="vm:GroupEditorViewModel"
         Title="{Binding Title}"
-        Width="440" SizeToContent="Height" CanResize="False"
+        Width="560" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">
 
   <StackPanel Margin="20" Spacing="12">
@@ -20,6 +21,42 @@
       <TextBlock Grid.Row="2" Text="Disolución" VerticalAlignment="Center" />
       <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EndDate}"
                PlaceholderText="AAAA-MM-DD (opcional)" />
+    </Grid>
+
+    <!-- Miembros: lista de transferencia. Las flechas solo mueven en
+         memoria; los cambios se guardan con Guardar. -->
+    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,200"
+          ColumnSpacing="8" RowSpacing="4">
+      <TextBlock Grid.Column="0" Text="Miembros" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="2" Text="Disponibles" FontWeight="SemiBold" />
+
+      <ListBox Grid.Row="1" Grid.Column="0"
+               ItemsSource="{Binding Members}"
+               SelectedItem="{Binding SelectedMember}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="m:Person">
+            <TextBlock Text="{Binding StageName}" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8"
+                  VerticalAlignment="Center">
+        <Button Content="◀" Command="{Binding AddMemberCommand}"
+                ToolTip.Tip="Agregar al grupo" />
+        <Button Content="▶" Command="{Binding RemoveMemberCommand}"
+                ToolTip.Tip="Quitar del grupo" />
+      </StackPanel>
+
+      <ListBox Grid.Row="1" Grid.Column="2"
+               ItemsSource="{Binding Available}"
+               SelectedItem="{Binding SelectedAvailable}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="m:Person">
+            <TextBlock Text="{Binding StageName}" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
     </Grid>
 
     <!-- Por qué Guardar está deshabilitado (se actualiza al escribir). -->

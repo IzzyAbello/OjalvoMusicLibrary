@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MusicLib.Data;
@@ -17,9 +18,29 @@ public sealed partial class GroupEditorViewModel : ObservableObject
     // Id del grupo que se edita; null = alta.
     private readonly long? _id;
 
-    // Miembros que se guardan. Todavía no se editan en el formulario: al
-    // editar se conservan los actuales; al agregar, el grupo nace vacío.
-    private readonly List<long> _memberIds;
+    /// <summary>
+    /// Personas que quedarán como miembros al guardar.
+    /// </summary>
+    public ObservableCollection<Person> Members { get; } = new();
+
+    /// <summary>
+    /// Personas que no son miembros (se pueden agregar).
+    /// </summary>
+    public ObservableCollection<Person> Available { get; } = new();
+
+    /// <summary>
+    /// Miembro seleccionado (para quitarlo).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RemoveMemberCommand))]
+    public partial Person? SelectedMember { get; set; }
+
+    /// <summary>
+    /// Persona disponible seleccionada (para agregarla).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddMemberCommand))]
+    public partial Person? SelectedAvailable { get; set; }
 
     /// <summary>
     /// true si se edita un grupo existente (el nombre queda bloqueado).
@@ -78,6 +99,9 @@ public sealed partial class GroupEditorViewModel : ObservableObject
     /// Constructor.
     /// </summary>
     /// <param name="editor">Hace los cambios en la BD.</param>
+    /// <param name="persons">
+    /// Todas las personas.
+    /// </param>
     /// <param name="group">
     /// Grupo a editar (se copian sus valores, no se modifica); null para
     /// dar de alta uno nuevo.
@@ -88,12 +112,17 @@ public sealed partial class GroupEditorViewModel : ObservableObject
     public GroupEditorViewModel
     (
         GroupsEditor editor,
+        IEnumerable<Person> persons,
         Group? group = null,
         IEnumerable<long>? memberIds = null
     )
     {
         _editor = editor;
-        _memberIds = memberIds?.ToList() ?? [];
+
+        var members = memberIds?.ToHashSet() ?? [];
+        foreach (var person in persons)
+            (members.Contains(person.Id) ? Members : Available).Add(person);
+
         if (group is null) return;
 
         _id = group.Id;
@@ -112,9 +141,9 @@ public sealed partial class GroupEditorViewModel : ObservableObject
             if (_id is not long id)
                 CloseRequested?.Invoke
                 (
-                    _editor.Add(Name, StartDate, EndDate, _memberIds)
+                    _editor.Add(Name, StartDate, EndDate, MemberIds())
                 );
-            else if (_editor.Update(id, StartDate, EndDate, _memberIds))
+            else if (_editor.Update(id, StartDate, EndDate, MemberIds()))
                 CloseRequested?.Invoke(id);
             else
                 Error = "El grupo ya no existe.";
@@ -131,6 +160,48 @@ public sealed partial class GroupEditorViewModel : ObservableObject
     // Al corregir el nombre, el error de "ya existe" deja de aplicar.
     // Toolkit
     partial void OnNameChanged(string value) => Error = "";
+
+    private List<long> MemberIds() => Members.Select(p => p.Id).ToList();
+
+    // Botón ◀: pasa la persona disponible seleccionada a los miembros.
+    [RelayCommand(CanExecute = nameof(HasAvailable))]
+    private void AddMember()
+    {
+        if (SelectedAvailable is not { } person) return;
+        Move(person, Available, Members);
+    }
+
+    private bool HasAvailable() => SelectedAvailable is not null;
+
+    // Botón ▶: regresa el miembro seleccionado a los disponibles.
+    [RelayCommand(CanExecute = nameof(HasMember))]
+    private void RemoveMember()
+    {
+        if (SelectedMember is not { } person) return;
+        Move(person, Members, Available);
+    }
+
+    private bool HasMember() => SelectedMember is not null;
+
+    // Quita a la persona de una lista y la inserta en la otra en su lugar.
+    private static void Move
+    (
+        Person person,
+        ObservableCollection<Person> from,
+        ObservableCollection<Person> to
+    )
+    {
+        from.Remove(person);
+
+        var index = 0;
+        while
+        (
+            index < to.Count &&
+            string.CompareOrdinal(to[index].StageName, person.StageName) <= 0
+        )
+            index++;
+        to.Insert(index, person);
+    }
 
     // Botón Cancelar (o Esc): cierra sin guardar.
     [RelayCommand]

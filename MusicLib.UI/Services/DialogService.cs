@@ -99,13 +99,15 @@ public sealed class DialogService : IDialogService
     /// <inheritdoc />
     public Task<long?> ShowGroupEditorAsync(Group? group = null)
     {
+        IReadOnlyList<Person> persons;
         List<long> memberIds = [];
-        if (group is not null)
+        using (var uow = new UnitOfWork(_dbPath, _log))
         {
-            using var uow = new UnitOfWork(_dbPath, _log);
-            memberIds = uow.Memberships.Members(group.Id)
-                .Select(p => p.Id)
-                .ToList();
+            persons = uow.Persons.FindAll();
+            if (group is not null)
+                memberIds = uow.Memberships.Members(group.Id)
+                    .Select(p => p.Id)
+                    .ToList();
         }
 
         return new GroupWindow
@@ -113,6 +115,7 @@ public sealed class DialogService : IDialogService
             new GroupEditorViewModel
             (
                 new GroupsEditor(_dbPath, _log),
+                persons,
                 group,
                 memberIds
             )
