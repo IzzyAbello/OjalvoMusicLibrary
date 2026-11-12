@@ -60,8 +60,24 @@ public sealed class DialogService : IDialogService
     /// <inheritdoc />
     public Task ShowPersonsAsync()
     {
-        var vm = new PersonsViewModel(_dbPath, _log);
+        // La ventana es la dueña de los diálogos que abre su ViewModel
+        // (formulario, confirmaciones), así quedan encima de ella.
+        var window = new PersonsWindow();
+        var vm = new PersonsViewModel
+        (
+            _dbPath,
+            _log,
+            new DialogService(window, _dbPath, _log)
+        );
         vm.Load();
-        return new PersonsWindow(vm).ShowDialog(_owner);
+        window.Attach(vm);
+        return window.ShowDialog(_owner);
     }
+
+    /// <inheritdoc />
+    public Task<long?> ShowPersonEditorAsync() =>
+        new PersonWindow
+        (
+            new PersonEditorViewModel(new PersonsEditor(_dbPath, _log))
+        ).ShowDialog<long?>(_owner);
 }

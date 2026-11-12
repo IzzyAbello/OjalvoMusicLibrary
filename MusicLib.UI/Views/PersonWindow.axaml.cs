@@ -1,18 +1,28 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
+using MusicLib.UI.ViewModels;
 
 namespace MusicLib.UI.Views;
 
 /// <summary>
-/// Formulario para dar de alta a una persona (artista individual).
+/// Formulario de una persona.
 /// </summary>
 public partial class PersonWindow : Window
 {
     /// <summary>
-    /// Constructor.
+    /// Constructor para el previsualizador de XAML.
     /// </summary>
     public PersonWindow() => InitializeComponent();
 
-    // Por ahora los dos botones solo cierran la ventana.
-    private void OnClose(object? sender, RoutedEventArgs e) => Close();
+    /// <summary>
+    /// Constructor de producción.
+    /// </summary>
+    /// <param name="vm">
+    /// ViewModel de la ventana; cuando pide cerrar, la ventana se cierra
+    /// devolviendo el id guardado (o null).
+    /// </param>
+    public PersonWindow(PersonEditorViewModel vm) : this()
+    {
+        DataContext = vm;
+        vm.CloseRequested += id => Close(id);
+    }
 }

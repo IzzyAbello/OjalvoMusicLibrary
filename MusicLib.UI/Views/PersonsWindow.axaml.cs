@@ -14,12 +14,13 @@ public partial class PersonsWindow : Window
     public PersonsWindow() => InitializeComponent();
 
     /// <summary>
-    /// Constructor de producción.
+    /// Conecta el ViewModel: la ventana se crea antes que él porque es la
+    /// dueña de los diálogos que él abre.
     /// </summary>
     /// <param name="vm">
     /// ViewModel de la ventana; cuando pide cerrar, la ventana se cierra.
     /// </param>
-    public PersonsWindow(PersonsViewModel vm) : this()
+    public void Attach(PersonsViewModel vm)
     {
         DataContext = vm;
         vm.CloseRequested += Close;

@@ -53,4 +53,12 @@ public interface IDialogService
     /// </summary>
     /// <returns>Se completa cuando la ventana se cierra.</returns>
     Task ShowPersonsAsync();
+
+    /// <summary>
+    /// Muestra el formulario para agregar una persona (modal).
+    /// </summary>
+    /// <returns>
+    /// El id de la persona guardada, o null si se canceló.
+    /// </returns>
+    Task<long?> ShowPersonEditorAsync();
 }

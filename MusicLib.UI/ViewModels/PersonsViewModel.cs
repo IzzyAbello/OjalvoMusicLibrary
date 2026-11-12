@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using MusicLib.Data;
 using MusicLib.Logging;
 using MusicLib.Models;
+using MusicLib.UI.Services;
 
 namespace MusicLib.UI.ViewModels;
 
@@ -14,6 +15,7 @@ public sealed partial class PersonsViewModel : ObservableObject
 {
     private readonly string _dbPath;
     private readonly ILog _log;
+    private readonly IDialogService _dialogs;
 
     /// <summary>
     /// Personas que muestra la lista.
@@ -42,10 +44,14 @@ public sealed partial class PersonsViewModel : ObservableObject
     /// </summary>
     /// <param name="dbPath">Ruta de la BD.</param>
     /// <param name="log">Log del programa.</param>
-    public PersonsViewModel(string dbPath, ILog log)
+    /// <param name="dialogs">
+    /// Abre los diálogos sobre la ventana de personas.
+    /// </param>
+    public PersonsViewModel(string dbPath, ILog log, IDialogService dialogs)
     {
         _dbPath = dbPath;
         _log = log;
+        _dialogs = dialogs;
     }
 
     /// <summary>
@@ -71,6 +77,16 @@ public sealed partial class PersonsViewModel : ObservableObject
             _log.Write(ex.ToString());
             return false;
         }
+    }
+
+    // Botón Agregar: abre el formulario y, si se guardó, recarga la lista
+    // y selecciona a la persona nueva.
+    [RelayCommand]
+    private async Task AddAsync()
+    {
+        if (await _dialogs.ShowPersonEditorAsync() is not long id) return;
+        if (!Load()) return;
+        SelectedPerson = Persons.FirstOrDefault(p => p.Id == id);
     }
 
     // Botón Cerrar (o Esc).
