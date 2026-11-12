@@ -93,6 +93,9 @@ public sealed partial class MainViewModel : ObservableObject
     /// <param name="dialogs">
     /// Abre las ventanas secundarias.
     /// </param>
+    /// <param name="player">
+    /// Reproductor de la barra de abajo.
+    /// </param>
     public MainViewModel
     (
         string dbPath,
@@ -100,7 +103,8 @@ public sealed partial class MainViewModel : ObservableObject
         Miner miner,
         TagReader tagReader,
         IFolderPicker folderPicker,
-        IDialogService dialogs
+        IDialogService dialogs,
+        PlayerViewModel player
     )
     {
         _dbPath = dbPath;
@@ -109,7 +113,17 @@ public sealed partial class MainViewModel : ObservableObject
         _tagReader = tagReader;
         _folderPicker = folderPicker;
         _dialogs = dialogs;
+
+        Player = player;
+        Player.StatusMessage += message => Status = message;
+        if (!Player.IsAvailable)
+            Status = "No se encontró VLC; la reproducción no está disponible.";
     }
+
+    /// <summary>
+    /// Reproductor.
+    /// </summary>
+    public PlayerViewModel Player { get; }
 
     // Concurrente para que el mismo botón sirva de "Cancelar" mientras
     // la minería corre.
@@ -265,6 +279,7 @@ public sealed partial class MainViewModel : ObservableObject
     // de la rola nueva y libera la imagen anterior.
     partial void OnSelectedRolaChanged(Rola? value)
     {
+        Player.Selected = value;
         var old = Cover;
         Cover = value is null ? null : LoadCover(value.Path);
         old?.Dispose();

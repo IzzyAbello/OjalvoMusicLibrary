@@ -53,6 +53,9 @@ public partial class App : Application
 
             if (_dbPath is not null)
             {
+                var audio = new VlcAudioPlayer(_log);
+                desktop.Exit += (_, _) => audio.Dispose();
+
                 var vm = new MainViewModel
                 (
                     _dbPath,
@@ -66,7 +69,8 @@ public partial class App : Application
                     ),
                     new TagReader(_log),
                     new FolderPicker(window),
-                    new DialogService(window, _dbPath, _log)
+                    new DialogService(window, _dbPath, _log),
+                    new PlayerViewModel(audio)
                 );
 
                 vm.LoadRolas();
