@@ -91,17 +91,29 @@
           </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Reproductor: Reproducir/Pausa de la rola seleccionada. -->
+        <!-- Reproductor: Reproducir/Pausa de la rola seleccionada y barra
+             de progreso (clic o arrastre para saltar). -->
         <Border Grid.Row="1" Padding="12,8"
                 BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-            <Button Content="{Binding Player.ButtonText}"
+          <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto"
+                ColumnSpacing="12">
+            <Button Grid.RowSpan="2" VerticalAlignment="Center"
+                    Content="{Binding Player.ButtonText}"
                     Command="{Binding Player.PlayPauseCommand}"
                     MinWidth="100" />
-            <TextBlock Grid.Column="1" Text="{Binding Player.NowPlaying}"
-                       VerticalAlignment="Center"
+            <TextBlock Grid.Column="1" Grid.ColumnSpan="2"
+                       Text="{Binding Player.NowPlaying}"
                        TextTrimming="CharacterEllipsis" />
+            <Slider x:Name="PositionSlider" Grid.Row="1" Grid.Column="1"
+                    Minimum="0"
+                    Maximum="{Binding Player.Duration}"
+                    Value="{Binding Player.Position, Mode=TwoWay}"
+                    IsEnabled="{Binding Player.CanSeek}"
+                    Focusable="False" />
+            <TextBlock Grid.Row="1" Grid.Column="2"
+                       Text="{Binding Player.TimeText}"
+                       VerticalAlignment="Center" />
           </Grid>
         </Border>
 
