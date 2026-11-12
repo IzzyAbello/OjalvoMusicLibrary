@@ -26,6 +26,7 @@ public sealed partial class PersonsViewModel : ObservableObject
     /// Persona seleccionada en la lista, o null si no hay ninguna.
     /// </summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
     public partial Person? SelectedPerson { get; set; }
 
     /// <summary>
@@ -88,6 +89,20 @@ public sealed partial class PersonsViewModel : ObservableObject
         if (!Load()) return;
         SelectedPerson = Persons.FirstOrDefault(p => p.Id == id);
     }
+
+    // Botón Editar: abre el formulario con la persona seleccionada y, si se
+    // guardó, recarga la lista y la vuelve a seleccionar.
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task EditAsync()
+    {
+        if (SelectedPerson is not { } person) return;
+        if (await _dialogs.ShowPersonEditorAsync(person) is not long id) 
+            return;
+        if (!Load()) return;
+        SelectedPerson = Persons.FirstOrDefault(p => p.Id == id);
+    }
+
+    private bool HasSelection() => SelectedPerson is not null;
 
     // Botón Cerrar (o Esc).
     [RelayCommand]

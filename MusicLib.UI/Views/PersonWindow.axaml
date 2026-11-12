@@ -3,7 +3,7 @@
         xmlns:vm="using:MusicLib.UI.ViewModels"
         x:Class="MusicLib.UI.Views.PersonWindow"
         x:DataType="vm:PersonEditorViewModel"
-        Title="Agregar persona"
+        Title="{Binding Title}"
         Width="440" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">
 
@@ -11,7 +11,9 @@
     <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto"
           RowSpacing="8" ColumnSpacing="8">
       <TextBlock Grid.Row="0" Text="Nombre artístico" VerticalAlignment="Center" />
-      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding StageName}" />
+      <!-- Al editar no se cambia: es el vínculo con su intérprete. -->
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding StageName}"
+               IsReadOnly="{Binding IsEditing}" />
       <TextBlock Grid.Row="1" Text="Nombre real" VerticalAlignment="Center" />
       <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RealName}"
                PlaceholderText="(opcional)" />

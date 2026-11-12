@@ -75,9 +75,9 @@ public sealed class DialogService : IDialogService
     }
 
     /// <inheritdoc />
-    public Task<long?> ShowPersonEditorAsync() =>
+    public Task<long?> ShowPersonEditorAsync(Person? person = null) =>
         new PersonWindow
         (
-            new PersonEditorViewModel(new PersonsEditor(_dbPath, _log))
+            new PersonEditorViewModel(new PersonsEditor(_dbPath, _log), person)
         ).ShowDialog<long?>(_owner);
 }

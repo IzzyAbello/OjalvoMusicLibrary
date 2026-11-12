@@ -55,10 +55,13 @@ public interface IDialogService
     Task ShowPersonsAsync();
 
     /// <summary>
-    /// Muestra el formulario para agregar una persona (modal).
+    /// Muestra el formulario de persona (modal).
     /// </summary>
+    /// <param name="person">
+    /// Persona a editar, o null para agregar una nueva.
+    /// </param>
     /// <returns>
     /// El id de la persona guardada, o null si se canceló.
     /// </returns>
-    Task<long?> ShowPersonEditorAsync();
+    Task<long?> ShowPersonEditorAsync(Person? person = null);
 }
