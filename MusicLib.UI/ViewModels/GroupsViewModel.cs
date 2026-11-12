@@ -16,6 +16,7 @@ public sealed partial class GroupsViewModel : ObservableObject
     private readonly string _dbPath;
     private readonly ILog _log;
     private readonly IDialogService _dialogs;
+    private readonly GroupsEditor _editor;
 
     /// <summary>
     /// Grupos que muestra la lista.
@@ -26,6 +27,8 @@ public sealed partial class GroupsViewModel : ObservableObject
     /// Grupo seleccionado en la lista, o null si no hay ninguno.
     /// </summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     public partial Group? SelectedGroup { get; set; }
 
     /// <summary>
@@ -47,11 +50,19 @@ public sealed partial class GroupsViewModel : ObservableObject
     /// <param name="dialogs">
     /// Abre los diálogos sobre la ventana de grupos.
     /// </param>
-    public GroupsViewModel(string dbPath, ILog log, IDialogService dialogs)
+    /// <param name="editor">Elimina grupos de la BD.</param>
+    public GroupsViewModel
+    (
+        string dbPath,
+        ILog log,
+        IDialogService dialogs,
+        GroupsEditor editor
+    )
     {
         _dbPath = dbPath;
         _log = log;
         _dialogs = dialogs;
+        _editor = editor;
     }
 
     /// <summary>
@@ -87,6 +98,40 @@ public sealed partial class GroupsViewModel : ObservableObject
         if (await _dialogs.ShowGroupEditorAsync() is not long id) return;
         if (!Load()) return;
         SelectedGroup = Groups.FirstOrDefault(g => g.Id == id);
+    }
+
+    // Botón Editar: abre el formulario con el grupo seleccionado y, si se
+    // guardó, recarga la lista y lo vuelve a seleccionar.
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task EditAsync()
+    {
+        if (SelectedGroup is not { } group) return;
+        if (await _dialogs.ShowGroupEditorAsync(group) is not long id)
+            return;
+        if (!Load()) return;
+        SelectedGroup = Groups.FirstOrDefault(g => g.Id == id);
+    }
+
+    private bool HasSelection() => SelectedGroup is not null;
+
+    // Botón Eliminar: pide confirmación y, si se acepta, borra el grupo y
+    // recarga la lista.
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task DeleteAsync()
+    {
+        if (SelectedGroup is not { } group) return;
+
+        var confirmed = await _dialogs.ConfirmAsync
+        (
+            "Eliminar grupo",
+            $"¿Eliminar el grupo \"{group.Name}\"? Se quitan sus miembros " +
+            "(las personas no se borran). Sus rolas no se tocan."
+        );
+        if (!confirmed) return;
+
+        var deleted = _editor.Delete(group.Id);
+        if (!Load()) return;
+        if (!deleted) Error = "El grupo ya no existe.";
     }
 
     // Botón Cerrar (o Esc).

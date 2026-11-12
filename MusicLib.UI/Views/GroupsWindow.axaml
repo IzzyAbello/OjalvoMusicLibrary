@@ -14,6 +14,8 @@
           Margin="0,12,0,0">
       <StackPanel Orientation="Horizontal" Spacing="8">
         <Button Content="Agregar" Command="{Binding AddCommand}" />
+        <Button Content="Editar" Command="{Binding EditCommand}" />
+        <Button Content="Eliminar" Command="{Binding DeleteCommand}" />
       </StackPanel>
       <Button Grid.Column="1" Content="Cerrar" Command="{Binding CloseCommand}"
               IsCancel="True" />
